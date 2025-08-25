@@ -1,0 +1,125 @@
+import { useState, useEffect } from 'react'
+import type { ExtendedProblem, FilterOptions } from '@/lib/db-types'
+import { ProblemGenerator } from '@/lib/problem-generator'
+import {
+  getProblemFilters,
+  getSubjectSettings,
+  convertSettingsToFilters,
+  createDefaultFilters,
+  extractSubjectFromUrl,
+  getActualSubjectName
+} from '@/lib/filter-utils'
+
+interface UseProblemManagementReturn {
+  problems: ExtendedProblem[]
+  currentProblemIndex: number
+  isLoading: boolean
+  filters: FilterOptions
+  answerStatus: 'correct' | 'partial' | 'incorrect' | null
+  currentSubjectName: string
+  setCurrentProblemIndex: (index: number) => void
+  setAnswerStatus: (status: 'correct' | 'partial' | 'incorrect' | null) => void
+  handleAnswer: (status: 'correct' | 'partial' | 'incorrect') => void
+}
+
+export function useProblemManagement(): UseProblemManagementReturn {
+  const [problems, setProblems] = useState<ExtendedProblem[]>([])
+  const [currentProblemIndex, setCurrentProblemIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [filters, setFilters] = useState<FilterOptions>({})
+  const [answerStatus, setAnswerStatus] = useState<'correct' | 'partial' | 'incorrect' | null>(null)
+  const [currentSubjectName, setCurrentSubjectName] = useState<string>('')
+
+  const problemGenerator = new ProblemGenerator()
+
+  useEffect(() => {
+    initializeProblems()
+  }, [])
+
+  const initializeProblems = async () => {
+    setIsLoading(true)
+    
+    try {
+      // 1. localStorage에서 필터 정보 확인
+      const savedFilters = getProblemFilters()
+      if (savedFilters) {
+        setFilters(savedFilters)
+        await generateProblems(savedFilters)
+        return
+      }
+
+      // 2. subject-settings에서 설정값 가져오기 시도
+      const subjectParam = extractSubjectFromUrl()
+      if (subjectParam) {
+        const subjectSettings = getSubjectSettings(subjectParam)
+        if (subjectSettings) {
+          const convertedFilters = convertSettingsToFilters(subjectSettings)
+          
+          // 과목명 설정
+          const actualSubjectName = getActualSubjectName(subjectParam)
+          setCurrentSubjectName(actualSubjectName)
+          
+          setFilters(convertedFilters)
+          await generateProblems(convertedFilters)
+          return
+        }
+        
+        // subject-settings가 없으면 현재 과목의 기본 필터 생성
+        const actualSubjectName = getActualSubjectName(subjectParam)
+        setCurrentSubjectName(actualSubjectName)
+        
+        const defaultFilters = await createDefaultFilters(subjectParam)
+        setFilters(defaultFilters)
+        await generateProblems(defaultFilters)
+        return
+      }
+      
+      // 3. 기본 필터로 문제 생성 (과목 정보 없음)
+      const defaultFilters = await createDefaultFilters()
+      setFilters(defaultFilters)
+      await generateProblems(defaultFilters)
+    } catch (error) {
+      console.error('문제 초기화 실패:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const generateProblems = async (filterOptions: FilterOptions) => {
+    try {
+      const result = await problemGenerator.generateRandomProblems(filterOptions)
+      setProblems(result.problems)
+      setCurrentProblemIndex(0)
+      setAnswerStatus(null)
+      
+      if (result.warning) {
+        console.warn(result.warning)
+      }
+    } catch (error) {
+      console.error('문제 생성 실패:', error)
+      setProblems([])
+    }
+  }
+
+  const handleAnswer = (status: 'correct' | 'partial' | 'incorrect') => {
+    setAnswerStatus(status)
+    
+    // 즉시 다음 문제로 이동
+    if (currentProblemIndex < problems.length - 1) {
+      setCurrentProblemIndex(prev => prev + 1)
+      setAnswerStatus(null)
+    }
+  }
+
+  return {
+    problems,
+    currentProblemIndex,
+    isLoading,
+    filters,
+    answerStatus,
+    currentSubjectName,
+    setCurrentProblemIndex,
+    setAnswerStatus,
+    handleAnswer
+  }
+}
