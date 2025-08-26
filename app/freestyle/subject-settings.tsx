@@ -228,7 +228,7 @@ export function SubjectSettings({
 				</div>
 			}
 		>
-			<div className="space-y-6 px-4 min-h-[450px]">
+			<div className="space-y-6 px-4 min-h-[400px]">
 				<Tabs defaultValue="textbook" className="w-full">
 					<TabsList className="gap-1 bg-transparent">
 						<TabsTrigger

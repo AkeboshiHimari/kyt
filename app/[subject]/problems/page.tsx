@@ -48,7 +48,7 @@ export default function ProblemsPage() {
   const currentProblem = problems[currentProblemIndex]
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-[calc(100vh-2rem)] flex flex-col">
       <ProblemHeader
         subjectName={currentProblem.problem_type.subchapter.chapter.subject.subject_name}
         elapsedTime={elapsedTime}

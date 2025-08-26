@@ -52,7 +52,7 @@ export function ChapterSelection({
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-2">
 			<div className="flex items-center justify-between">
 				<div>
 					<Label className="text-base font-medium">출제 범위 선택</Label>
@@ -70,7 +70,7 @@ export function ChapterSelection({
 				</Button>
 			</div>
 			
-			<ScrollArea className="h-[280px] w-full">
+			<ScrollArea className="h-[240px] w-full">
 				<div className="space-y-2">
 					{chapters.map((chapter) => (
 						<div key={chapter.id} className="border rounded-lg overflow-hidden bg-card">

@@ -22,7 +22,7 @@ export function ProblemLoading() {
       </div>
 
       {/* 하단 버튼 스켈레톤 */}
-      <div className="bg-white px-4 py-6">
+      <div className="bg-white px-4 py-4">
         <div className="flex justify-center gap-8">
           <Skeleton className="h-12 w-12 rounded-lg" />
           <Skeleton className="h-12 w-12 rounded-lg" />
