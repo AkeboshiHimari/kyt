@@ -188,12 +188,18 @@ async function getRatingBreakdown(supabase: SupabaseClient, userId: string, subj
   let hasPhysicsData = false
   let hasMathData = false
 
-  for (const subjectId of subjectIds) {
-    const { data: breakdown } = await supabase.rpc('get_user_rating_breakdown', {
+  const breakdownPromises = subjectIds.map(subjectId =>
+    supabase.rpc('get_user_rating_breakdown', {
       p_user_id: userId,
       p_subject_id: subjectId
-    })
+    }).then(({ data }) => ({ subjectId, data }))
+  )
 
+  const results = await Promise.all(breakdownPromises)
+
+  for (const result of results) {
+    const { subjectId, data: breakdown } = result
+    
     if (breakdown && Array.isArray(breakdown) && breakdown.length > 0) {
       const item = breakdown[0] as {
         problem_solving_score: number
@@ -277,8 +283,18 @@ async function getRatingBreakdown(supabase: SupabaseClient, userId: string, subj
 
 // 프로필 데이터를 효율적으로 가져오는 메인 함수
 export async function getProfileData(supabase: SupabaseClient, userId: string): Promise<ProfileData> {
+  // 모든 과목 ID 정의
+  const allSubjectIds = [1, 2, 3]
+
   // 병렬로 데이터 가져오기
-  const [activityResult, masteryData, wrongProblems, userStatsResult, topSolvedResult, allSubjectProblemsResult] = await Promise.all([
+  const [
+    activityResult, 
+    masteryData, 
+    wrongProblems, 
+    topSolvedResult, 
+    allSubjectProblemsResult, 
+    breakdown
+  ] = await Promise.all([
     // 활동 기록 (지난 49일)
     supabase
       .from('user_problem_history')
@@ -291,13 +307,6 @@ export async function getProfileData(supabase: SupabaseClient, userId: string): 
     
     // 오답 문제 (통합 쿼리)
     getWrongProblems(supabase, userId),
-    
-    // 사용자 통계
-    supabase
-      .from('user_statistics')
-      .select('scope_type, scope_id, rating')
-      .eq('user_id', userId)
-      .eq('scope_type', 'subject'),
     
     // 전체 상위 75개 해결한 문제 (전체 탭용)
     supabase.rpc('get_user_top_solved_problems_with_details', {
@@ -331,16 +340,15 @@ export async function getProfileData(supabase: SupabaseClient, userId: string): 
       textbook_name: string
       subject_name: string
       subject_id: number
-    }>>()
+    }>>(),
+    
+    // 모든 과목에 대해 레이팅 구성 요소 계산
+    getRatingBreakdown(supabase, userId, allSubjectIds)
   ])
 
   // 활동 데이터 처리
   const activityData = processActivityData(activityResult.data || [])
   
-  // 모든 과목에 대해 레이팅 구성 요소 계산 (물리, 미분적분학, 선형대수학)
-  const allSubjectIds = [1, 2, 3]
-  const breakdown = await getRatingBreakdown(supabase, userId, allSubjectIds)
-
   // 전체 상위 75개 해결한 문제 데이터 변환
   const topSolvedProblems: TopSolvedProblem[] = (topSolvedResult.data || []).map((item: any) => ({
     problem_id: item.problem_id,
