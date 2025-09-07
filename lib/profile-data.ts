@@ -72,12 +72,15 @@ export interface ProfileData {
   allSubjectTopProblems: { [subjectId: number]: TopSolvedProblem[] } // 과목별 상위 문제들
 }
 
-// 활동 기록 데이터 처리
+// 활동 기록 데이터 처리 (한국 시간 기준)
 function processActivityData(historyData: Array<{ submitted_at: string }>) {
   const activityMap: Record<string, number> = {}
   
   for (const item of historyData) {
-    const date = item.submitted_at.split('T')[0]
+    // UTC 시간을 한국 시간(UTC+9)으로 변환하여 날짜 추출
+    const utcDate = new Date(item.submitted_at)
+    const koreaDate = new Date(utcDate.getTime() + (9 * 60 * 60 * 1000)) // UTC+9
+    const date = koreaDate.toISOString().split('T')[0]
     activityMap[date] = (activityMap[date] || 0) + 1
   }
   

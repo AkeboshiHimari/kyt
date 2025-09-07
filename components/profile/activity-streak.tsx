@@ -9,6 +9,17 @@ interface ActivityStreakProps {
   activityData: ActivityData[]
 }
 
+// 날짜 문자열을 로컬 시간 기준 Date 객체로 변환
+function parseLocalDate(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
+// 요일을 정확하게 계산하는 함수 (0: 일요일, 1: 월요일, ...)
+function getDayOfWeek(dateString: string): number {
+  return parseLocalDate(dateString).getDay()
+}
+
 // 사용자의 첫 활동부터 오늘까지의 모든 날짜 배열 생성
 function generateDatesArray(activityData: ActivityData[]) {
   if (activityData.length === 0) return []
@@ -16,13 +27,16 @@ function generateDatesArray(activityData: ActivityData[]) {
   const dates = []
   const today = new Date()
   
-  // 활동 데이터에서 가장 이른 날짜 찾기
-  const earliestDate = new Date(Math.min(...activityData.map(d => new Date(d.date).getTime())))
+  // 활동 데이터에서 가장 이른 날짜 찾기 (한국 시간 기준)
+  const earliestDate = new Date(Math.min(...activityData.map(d => parseLocalDate(d.date).getTime())))
   
   // 가장 이른 날짜부터 오늘까지 모든 날짜 생성
   const current = new Date(earliestDate)
   while (current <= today) {
-    dates.push(current.toISOString().split('T')[0])
+    const year = current.getFullYear()
+    const month = String(current.getMonth() + 1).padStart(2, '0')
+    const day = String(current.getDate()).padStart(2, '0')
+    dates.push(`${year}-${month}-${day}`)
     current.setDate(current.getDate() + 1)
   }
   
@@ -38,10 +52,10 @@ function getActivityColor(problemsSolved: number) {
   return 'bg-green-800 dark:bg-green-200'
 }
 
-// 월 이름 가져오기
+// 월 이름 가져오기 (한국 시간 기준)
 function getMonthName(date: string) {
   const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
-  return months[new Date(date).getMonth()]
+  return months[parseLocalDate(date).getMonth()]
 }
 
 // 활동 데이터를 처리하는 함수
@@ -49,12 +63,13 @@ function processActivityData(activityData: ActivityData[]) {
   const allDates = generateDatesArray(activityData)
   const activityMap = new Map(activityData.map(item => [item.date, item.problems_solved]))
   
-  // 첫 번째 날의 요일을 기준으로 시작점 조정
-  const firstDate = allDates[0] ? new Date(allDates[0]) : new Date()
+  // 첫 번째 날의 요일을 기준으로 시작점 조정 (한국 시간 기준)
+  const firstDate = allDates[0] ? parseLocalDate(allDates[0]) : new Date()
   const firstDayOfWeek = firstDate.getDay() // 0: 일요일, 1: 월요일, ...
   
   // 일요일부터 시작하도록 앞에 빈 날짜들 추가
   const paddedDates = [...Array(firstDayOfWeek)].map(() => '').concat(allDates)
+  
   
   // 주차별로 그룹화 (각 주는 7개의 요소)
   const weeks: Array<Array<{ date: string, count: number }>> = []
