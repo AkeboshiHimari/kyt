@@ -5,10 +5,12 @@ import { createClient } from '@/utils/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  // A redirect destination can be included as a ?next= parameter
+  // If next is not present, default to /menu
+  const next = searchParams.get('next') ?? '/menu'
 
   if (code) {
-    const cookieStore = await cookies()
+    const cookieStore = cookies()
     const supabase = createClient(cookieStore)
     
     cookieStore.getAll()
