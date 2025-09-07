@@ -3,8 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 // 학과별 반영비율 설정 (추후 사용자 설정으로 변경 가능)
 // 예시: 물리 60%, 수학 40%의 경우 physics: 0.6, math: 0.4 (수학은 미분적분학+선형대수학 평균)
 export const DEPARTMENT_WEIGHTS = {
-  physics: 0.6,    // 물리학과 비중 (기본 50%)
-  math: 0.4        // 수학과 비중 (기본 50%, 미분적분학+선형대수학 평균)
+  physics: 1,    // 물리학과 비중 (기본 50%)
+  math: 1        // 수학과 비중 (기본 50%, 미분적분학+선형대수학 평균)
 }
 
 interface MasteryItem {
