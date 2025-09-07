@@ -199,7 +199,7 @@ export function RatingOverview({
 					</div>
 				)}
 				<div className="flex justify-between items-center">
-					<span className="text-gray-600 dark:text-gray-400">푼 문제 수 보너스 ({solvedProblemCount}문제)</span>
+					<span className="text-gray-600 dark:text-gray-400">해결한 문제 수 보너스 ({solvedProblemCount}문제)</span>
 					<span className="font-medium">
 						+{problemCountBonus}
 					</span>
