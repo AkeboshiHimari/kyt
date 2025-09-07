@@ -201,6 +201,8 @@ export default function ProblemsPage() {
     ? currentProblem.chapter.subject.subject_name
     : '과목 정보 없음'
     
+  const textbookName = currentProblem.textbook?.textbook_name
+    
   const subchapterName = physicsCheck 
     ? currentProblem.problem_type.subchapter.subchapter_name
     : undefined // 수학 과목은 서브챕터가 없음
@@ -221,6 +223,8 @@ export default function ProblemsPage() {
       <ProblemDisplay
         subchapterName={subchapterName}
         problemNumber={currentProblem.problem_number}
+        textbookName={textbookName}
+        isPaused={isPaused}
       />
 
       <AnswerButtons

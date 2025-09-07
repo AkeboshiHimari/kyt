@@ -6,7 +6,7 @@ export function ProblemLoading() {
   return (
     <div className="h-[calc(100vh-5rem)] flex flex-col">
       {/* 상단 헤더 스켈레톤 */}
-      <div className="bg-white px-4 py-3 flex justify-center items-center">
+      <div className="px-4 py-3 flex justify-center items-center">
         <div className="flex items-center gap-4">
           <Skeleton className="h-6 w-24" />
           <Skeleton className="h-6 w-16" />
@@ -22,7 +22,7 @@ export function ProblemLoading() {
       </div>
 
       {/* 하단 버튼 스켈레톤 */}
-      <div className="bg-white px-4 py-6">
+      <div className="px-4 py-6">
         <div className="flex justify-center gap-10">
           <Skeleton className="h-12 w-12 rounded-lg" />
           <Skeleton className="h-12 w-12 rounded-lg" />

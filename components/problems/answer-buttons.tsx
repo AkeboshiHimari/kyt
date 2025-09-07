@@ -12,7 +12,7 @@ interface AnswerButtonsProps {
 export function AnswerButtons({ isPaused, isProcessing = false, onAnswer }: AnswerButtonsProps) {
   if (isPaused) {
     return (
-      <div className="bg-white px-4 py-9.5">
+      <div className="px-4 py-9.5">
         <div className="flex justify-center">
           <p className="text-gray-400 text-sm">일시정지</p>
         </div>
@@ -22,7 +22,7 @@ export function AnswerButtons({ isPaused, isProcessing = false, onAnswer }: Answ
 
   if (isProcessing) {
     return (
-      <div className="bg-white px-4 py-9.5">
+      <div className="px-4 py-9.5">
         <div className="flex justify-center">
           <p className="text-gray-400 text-sm">제출 중...</p>
         </div>
@@ -31,7 +31,7 @@ export function AnswerButtons({ isPaused, isProcessing = false, onAnswer }: Answ
   }
 
   return (
-    <div className="bg-white px-4 py-4">
+    <div className="px-4 py-4">
       <div className="flex justify-center gap-6">
         <Button
           variant="ghost"

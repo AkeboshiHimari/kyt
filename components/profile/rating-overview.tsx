@@ -15,13 +15,13 @@ interface RatingOverviewProps {
 function getDifficultyColor(difficulty: number) {
 	switch (difficulty) {
 		case 3:
-			return "bg-gray-900 text-white"; // 검은색
+			return "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"; // 검은색
 		case 2:
-			return "bg-gray-600 text-white"; // 진한 회색
+			return "bg-gray-600 dark:bg-gray-400 text-white dark:text-gray-900"; // 진한 회색
 		case 1:
-			return "bg-gray-400 text-gray-900"; // 중간 회색
+			return "bg-gray-400 dark:bg-gray-600 text-gray-900 dark:text-white"; // 중간 회색
 		default:
-			return "bg-gray-100 text-gray-900 border border-gray-300"; // 흰색 (난이도 0)
+			return "bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600"; // 흰색 (난이도 0)
 	}
 }
 
@@ -117,7 +117,7 @@ export function RatingOverview({
 					{/* 다음 티어까지의 진행률 */}
 					{progressInfo.nextTierName && (
 						<div className="mt-3 space-y-2">
-							<div className="w-full bg-gray-200 rounded-full h-4">
+							<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
 								<div
 									className={`h-4 rounded-full bg-gradient-to-r ${progressInfo.progressBarColor} transition-all duration-500 ease-out`}
 									style={{ width: `${progressInfo.progress}%` }}
@@ -133,7 +133,7 @@ export function RatingOverview({
 					{/* Master 티어인 경우 */}
 					{!progressInfo.nextTierName && (
 						<div className="mt-3 space-y-2">
-							<div className="w-full bg-gray-200 rounded-full h-4">
+							<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
 								<div
 									className={`h-4 rounded-full bg-gradient-to-r ${progressInfo.progressBarColor} animate-pulse`}
 									style={{ width: "100%" }}
@@ -147,14 +147,14 @@ export function RatingOverview({
 
 			<div className="space-y-3">
 				<div className="flex justify-between items-center">
-					<span className="text-gray-600">문제해결 점수</span>
+					<span className="text-gray-600 dark:text-gray-400">문제해결 점수</span>
 					<span className="font-medium">{solvingScore}</span>
 				</div>
 
 				{/* 상위 75개 해결한 문제들 시각화 */}
 				{topSolvedProblems.length > 0 && (
 					<div className="mt-4 space-y-2">
-						<div className="text-xs sm:text-sm text-gray-600">
+						<div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
 							상위 75개 해결한 문제 (어려운 순 → 최근 순)
 						</div>
 						<div className="grid grid-cols-10 sm:grid-cols-12 md:grid-cols-15 lg:grid-cols-20 xl:grid-cols-25 gap-0.5 sm:gap-1">
@@ -179,36 +179,36 @@ export function RatingOverview({
 							{Array.from(
 								{ length: Math.max(0, 75 - topSolvedProblems.length) },
 								(_, index) => (
-									<div
-										key={`empty-${topSolvedProblems.length + index}`}
-										className="aspect-square rounded bg-gray-50 border border-gray-200"
-									/>
+										<div
+											key={`empty-${topSolvedProblems.length + index}`}
+											className="aspect-square rounded bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+										/>
 								),
 							)}
 						</div>
-						<div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
+						<div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 dark:text-gray-400">
 							<span>쉬움</span>
 							<div className="flex space-x-1">
-								<div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-100 border border-gray-300" />
-								<div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-400" />
-								<div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-600" />
-								<div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-900" />
+								<div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600" />
+								<div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-400 dark:bg-gray-600" />
+								<div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-600 dark:bg-gray-400" />
+								<div className="w-3 h-3 sm:w-4 sm:h-4 rounded bg-gray-900 dark:bg-gray-100" />
 							</div>
 							<span>어려움</span>
 						</div>
 					</div>
 				)}
 				<div className="flex justify-between items-center">
-					<span className="text-gray-600">푼 문제 수 보너스</span>
+					<span className="text-gray-600 dark:text-gray-400">푼 문제 수 보너스</span>
 					<span className="font-medium">
 						+{problemCountBonus}{" "}
-						<span className="text-sm text-gray-500">
+						<span className="text-sm text-gray-500 dark:text-gray-400">
 							({solvedProblemCount}문제)
 						</span>
 					</span>
 				</div>
 				<div className="flex justify-between items-center">
-					<span className="text-gray-600">숙련도 보너스</span>
+					<span className="text-gray-600 dark:text-gray-400">숙련도 보너스</span>
 					<span className="font-medium">+{masteryBonus}</span>
 				</div>
 				<hr className="my-3" />

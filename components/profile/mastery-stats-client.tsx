@@ -18,9 +18,9 @@ interface HierarchyDisplayProps {
 }
 
 function getRatingColor(rating: number) {
-  if (rating >= 900) return 'text-purple-600 bg-purple-50' // 마스터 (레이팅 +8)
-  if (rating >= 500) return 'text-blue-600 bg-blue-50'     // 절반 달성 (레이팅 +4)
-  return 'text-gray-600 bg-gray-50'                        // 기본
+  if (rating >= 900) return 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20' // 마스터 (레이팅 +8)
+  if (rating >= 500) return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'     // 절반 달성 (레이팅 +4)
+  return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800'                        // 기본
 }
 
 function HierarchyDisplay({ nodes, level = 0 }: HierarchyDisplayProps) {
@@ -62,7 +62,7 @@ function HierarchyDisplay({ nodes, level = 0 }: HierarchyDisplayProps) {
         <div key={node.id}>
           <div 
             className={`flex justify-between items-center py-2 ${getIndent(level)} ${
-              node.children.length > 0 ? 'cursor-pointer hover:bg-gray-50' : ''
+              node.children.length > 0 ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800' : ''
             }`}
             onClick={() => node.children.length > 0 && toggleNode(node.id)}
             onKeyDown={(e) => {

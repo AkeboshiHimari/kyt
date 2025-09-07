@@ -31,11 +31,11 @@ function generateDatesArray(activityData: ActivityData[]) {
 
 // 활동 강도에 따른 색상 결정 (30문제 기준으로 조정)
 function getActivityColor(problemsSolved: number) {
-  if (problemsSolved === 0) return 'bg-gray-100'
-  if (problemsSolved <= 5) return 'bg-green-200'
-  if (problemsSolved <= 15) return 'bg-green-400'
-  if (problemsSolved <= 25) return 'bg-green-600'
-  return 'bg-green-800'
+  if (problemsSolved === 0) return 'bg-gray-100 dark:bg-gray-800'
+  if (problemsSolved <= 5) return 'bg-green-200 dark:bg-green-800'
+  if (problemsSolved <= 15) return 'bg-green-400 dark:bg-green-600'
+  if (problemsSolved <= 25) return 'bg-green-600 dark:bg-green-400'
+  return 'bg-green-800 dark:bg-green-200'
 }
 
 // 월 이름 가져오기
@@ -125,18 +125,18 @@ export function ActivityStreak({ activityData }: ActivityStreakProps) {
         <h2 className="text-2xl font-bold">활동 기록</h2>
         <div className="text-left">
           <div className="text-4xl font-bold mb-2">{currentStreak}일</div>
-          <div className="text-gray-600">현재 연속 학습일</div>
-          <div className="text-sm text-gray-500 mt-2">총 활동일: {totalStreak}일</div>
+          <div className="text-gray-600 dark:text-gray-400">현재 연속 학습일</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">총 활동일: {totalStreak}일</div>
         </div>
       </div>
       
-      <div className="bg-white rounded-lg p-4 border overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border dark:border-gray-700 overflow-hidden">
         <div className="flex">
           {/* 요일 라벨 */}
           <div className="flex flex-col space-y-1 mr-2">
             <div className="h-3" /> {/* 월 라벨 공간 */}
             {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => (
-              <div key={`weekday-${day}`} className="text-xs text-gray-600 h-4 flex items-center">
+              <div key={`weekday-${day}`} className="text-xs text-gray-600 dark:text-gray-400 h-4 flex items-center">
                 {index % 2 === 1 ? day : ''}
               </div>
             ))}
@@ -151,7 +151,7 @@ export function ActivityStreak({ activityData }: ActivityStreakProps) {
                   {monthLabels.map(({ week, month }) => (
                     <div
                       key={`month-${month}-${week}`}
-                      className="absolute text-xs text-gray-600"
+                      className="absolute text-xs text-gray-600 dark:text-gray-400"
                       style={{ left: `${week * 20}px` }}
                     >
                       {month}
@@ -182,14 +182,14 @@ export function ActivityStreak({ activityData }: ActivityStreakProps) {
         
         {/* 범례 */}
         <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center space-x-2 text-xs text-gray-600">
+          <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400">
             <span>적음</span>
             <div className="flex space-x-1">
-              <div className="w-4 h-4 rounded bg-gray-100" />
-              <div className="w-4 h-4 rounded bg-green-200" />
-              <div className="w-4 h-4 rounded bg-green-400" />
-              <div className="w-4 h-4 rounded bg-green-600" />
-              <div className="w-4 h-4 rounded bg-green-800" />
+              <div className="w-4 h-4 rounded bg-gray-100 dark:bg-gray-800" />
+              <div className="w-4 h-4 rounded bg-green-200 dark:bg-green-800" />
+              <div className="w-4 h-4 rounded bg-green-400 dark:bg-green-600" />
+              <div className="w-4 h-4 rounded bg-green-600 dark:bg-green-400" />
+              <div className="w-4 h-4 rounded bg-green-800 dark:bg-green-200" />
             </div>
             <span>많음</span>
           </div>

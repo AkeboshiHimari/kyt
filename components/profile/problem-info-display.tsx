@@ -17,13 +17,13 @@ interface ProblemInfoDisplayProps {
 function getDifficultyColor(difficulty: number) {
   switch (difficulty) {
     case 3:
-      return 'bg-gray-900 text-white';
+      return 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900';
     case 2:
-      return 'bg-gray-600 text-white';
+      return 'bg-gray-600 dark:bg-gray-400 text-white dark:text-gray-900';
     case 1:
-      return 'bg-gray-400 text-gray-900';
+      return 'bg-gray-400 dark:bg-gray-600 text-gray-900 dark:text-white';
     default:
-      return 'bg-gray-100 text-gray-900 border border-gray-300';
+      return 'bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600';
   }
 }
 
@@ -41,10 +41,10 @@ function ProblemInfoContent({ problem }: { problem: TopSolvedProblem }) {
           <Circle className="w-3 h-3 text-yellow-500 fill-yellow-500" />
         )}
       </div>
-      <div className="text-xs text-gray-600">
+      <div className="text-xs text-gray-600 dark:text-gray-400">
         {problem.textbook_name}
       </div>
-      <div className="text-xs text-gray-600">
+      <div className="text-xs text-gray-600 dark:text-gray-400">
         {formatDate(problem.last_solved_at)}
       </div>
     </div>

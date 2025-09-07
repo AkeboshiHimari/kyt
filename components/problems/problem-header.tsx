@@ -34,14 +34,14 @@ export function ProblemHeader({
   const displayMinutes = minutes % 60
 
   return (
-    <div className="bg-white px-4 py-3 flex justify-center items-center">
+    <div className="px-4 py-3 flex flex-col justify-center items-center">
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-4 text-lg">
             <span className="font-medium flex-shrink-0">
               {subjectName}
             </span>
-            <div className="text-gray-600 font-mono flex items-center min-w-[60px] justify-center">
+            <div className="text-muted-foreground font-mono flex items-center min-w-[60px] justify-center">
               {hours > 0 && (
                 <>
                   <NumberFlow value={hours} />
@@ -58,7 +58,6 @@ export function ProblemHeader({
                 format={{ minimumIntegerDigits: 2 }}
               />
             </div>
-            {isPaused && <span className="text-orange-500 text-sm flex-shrink-0">일시정지</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-2">
@@ -83,6 +82,9 @@ export function ProblemHeader({
           </div>
         </PopoverContent>
       </Popover>
+      <div className="text-orange-500 text-sm mt-1 min-h-[20px] flex items-center justify-center">
+        {isPaused ? '일시정지' : ''}
+      </div>
     </div>
   )
 }
