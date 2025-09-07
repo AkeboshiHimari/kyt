@@ -86,55 +86,58 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Role-based access control
-  if (user && userProfile) {
-    const userRole = userProfile.role
-
-    // Redirect pending users to account-pending page (except if they're already there)
-    if (userRole === 'pending' && !isAccountPendingPage) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/account-pending'
-      return NextResponse.redirect(url)
-    }
-
-    // If pending user is already on account-pending page, allow access
-    if (userRole === 'pending' && isAccountPendingPage) {
-      return supabaseResponse
-    }
-
-    // Block access to admin pages for non-admin users
-    if (isAdminPath && userRole !== 'admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/menu'
-      return NextResponse.redirect(url)
-    }
-
-    // Block access to protected pages for pending users
-    if (isProtectedPath && userRole === 'pending') {
-      const url = request.nextUrl.clone()
-      url.pathname = '/account-pending'
-      return NextResponse.redirect(url)
-    }
-
-    // Auto-redirect logic based on user authentication status and role
+  if (user) {
+    // Auto-redirect logic for authenticated users on the homepage
     if (request.nextUrl.pathname === '/') {
-      if (userRole === 'pending') {
+      if (userProfile?.role === 'pending') {
         const url = request.nextUrl.clone()
         url.pathname = '/account-pending'
         return NextResponse.redirect(url)
-      } else if (userRole === 'user' || userRole === 'admin') {
+      } else {
         const url = request.nextUrl.clone()
         url.pathname = '/menu'
         return NextResponse.redirect(url)
       }
     }
-  } else if (user && !userProfile) {
-    // User exists but no profile - this shouldn't happen due to the trigger
-    // but handle it gracefully
-    // If they're not on a public page, redirect to home
-    if (!isPublicPath) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
+
+    if (userProfile) {
+      const userRole = userProfile.role
+
+      // Redirect pending users to account-pending page (except if they're already there)
+      if (userRole === 'pending' && !isAccountPendingPage) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/account-pending'
+        return NextResponse.redirect(url)
+      }
+
+      // If pending user is already on account-pending page, allow access
+      if (userRole === 'pending' && isAccountPendingPage) {
+        return supabaseResponse
+      }
+
+      // Block access to admin pages for non-admin users
+      if (isAdminPath && userRole !== 'admin') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/menu'
+        return NextResponse.redirect(url)
+      }
+
+      // Block access to protected pages for pending users
+      if (isProtectedPath && userRole === 'pending') {
+        const url = request.nextUrl.clone()
+        url.pathname = '/account-pending'
+        return NextResponse.redirect(url)
+      }
+    } else {
+      // User exists but no profile - this shouldn't happen due to the trigger
+      // but handle it gracefully.
+      // If they're not on a public page, redirect to home.
+      // This might happen for a brief moment after sign up.
+      if (!isPublicPath) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+      }
     }
   } else {
     // Not logged in user: redirect to home from protected pages
