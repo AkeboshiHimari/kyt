@@ -15,11 +15,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { User, LogOut, Settings, Loader2 } from 'lucide-react'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import type { Profile } from '@/lib/db-types'
 
 export function UserMenu() {
   const [user, setUser] = useState<SupabaseUser | null>(null)
+  const [profile, setProfile] = useState<Pick<Profile, 'nickname'> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [profileLoaded, setProfileLoaded] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -41,13 +44,37 @@ export function UserMenu() {
     // 인증 상태 변경 감지
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user ?? null)
+        const currentUser = session?.user ?? null
+        setUser(currentUser)
+        
+        if (!currentUser) {
+          setProfile(null)
+          setProfileLoaded(false)
+        }
+        
         setIsLoading(false)
       }
     )
 
     return () => subscription.unsubscribe()
   }, [supabase])
+
+  // 프로필 정보를 필요할 때만 가져오기
+  const loadProfile = async () => {
+    if (!user || profileLoaded) return
+
+    try {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('nickname')
+        .eq('id', user.id)
+        .single()
+      setProfile(profileData)
+      setProfileLoaded(true)
+    } catch (error) {
+      console.error('프로필 정보 가져오기 실패:', error)
+    }
+  }
 
   const handleSignOut = async () => {
     try {
@@ -93,7 +120,7 @@ export function UserMenu() {
     .toUpperCase() || user.email?.[0].toUpperCase() || 'U'
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && loadProfile()}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
@@ -109,10 +136,10 @@ export function UserMenu() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {user.user_metadata?.full_name || '사용자'}
+              {profile?.nickname || '닉네임 미설정'}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
+              UID: {user.id.slice(-6)}
             </p>
           </div>
         </DropdownMenuLabel>
