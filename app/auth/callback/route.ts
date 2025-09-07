@@ -11,12 +11,15 @@ export async function GET(request: Request) {
     const cookieStore = await cookies()
     const supabase = createClient(cookieStore)
     
-    // Next.js 15+ 쿠키 지연 평가 문제 해결을 위해 쿠키를 미리 읽음
     cookieStore.getAll()
     
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
+      if (process.env.VERCEL_URL) {
+        return NextResponse.redirect(`https://${process.env.VERCEL_URL}${next}`)
+      }
+      
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       
