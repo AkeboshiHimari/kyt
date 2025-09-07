@@ -25,7 +25,7 @@ export function TextbookSelection({
 			<div className="space-y-3">
 				<Label className="text-base font-medium">교재 선택</Label>
 				<div className="text-sm text-muted-foreground">
-					문제 출제에 사용할 교재를 선택하세요 (다중 선택 가능)
+					문제 출제에 사용할 교재를 선택하세요 (하나만 선택 가능)
 				</div>
 			</div>
 			
