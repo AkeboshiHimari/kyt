@@ -51,9 +51,15 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Public pages that don't require authentication (accessible without login)
-  const publicPaths = ['/', '/auth', '/error', '/terms', '/privacy']
+  const publicPaths = [
+    '/', 
+    '/auth/callback', 
+    '/auth/auth-code-error',
+    '/terms', 
+    '/privacy'
+  ]
   const isPublicPath = publicPaths.some(path => 
-    request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`)
+    request.nextUrl.pathname === path || (path !== '/' && request.nextUrl.pathname.startsWith(`${path}/`))
   )
 
   // Special pages that require authentication but have specific access rules
@@ -72,7 +78,7 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Redirect unauthenticated users trying to access protected pages
-  if (!user && !isPublicPath && !isAccountPendingPage) {
+  if (!user && (isProtectedPath || isAdminPath)) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
@@ -115,6 +121,11 @@ export async function updateSession(request: NextRequest) {
         return supabaseResponse
       }
 
+      // Allow access to public pages for pending users, except for the root page
+      if (userRole === 'pending' && isPublicPath && request.nextUrl.pathname !== '/') {
+        return supabaseResponse
+      }
+      
       // Block access to admin pages for non-admin users
       if (isAdminPath && userRole !== 'admin') {
         const url = request.nextUrl.clone()
@@ -140,11 +151,9 @@ export async function updateSession(request: NextRequest) {
       }
     }
   } else {
-    // Not logged in user: redirect to home from protected pages
-    if (isProtectedPath || isAdminPath) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      return NextResponse.redirect(url)
+    // Not logged in user can access public paths
+    if (isPublicPath) {
+      return supabaseResponse
     }
   }
 
