@@ -16,8 +16,9 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      if (process.env.VERCEL_URL) {
-        return NextResponse.redirect(`https://${process.env.VERCEL_URL}${next}`)
+      const siteUrl = process.env.SITE_URL
+      if (siteUrl) {
+        return NextResponse.redirect(`${siteUrl}${next}`)
       }
       
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
