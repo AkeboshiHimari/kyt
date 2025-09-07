@@ -24,7 +24,8 @@ export default function ProblemsPage() {
     currentProblemIndex,
     isLoading,
     currentSubjectName,
-    handleAnswer: originalHandleAnswer
+    handleAnswer: originalHandleAnswer,
+    clearProblemSessionData
   } = useProblemManagement()
 
   const { elapsedTime, isPaused, togglePause, resetTimer, formatTime, isTimerStarted } = useProblemTimer()
@@ -93,6 +94,7 @@ export default function ProblemsPage() {
       if (currentSession) {
         await abandonSession()
       }
+      clearProblemSessionData()
       window.location.href = '/'
     }
   }
@@ -102,6 +104,7 @@ export default function ProblemsPage() {
     if (currentSession) {
       await abandonSession()
     }
+    clearProblemSessionData()
     window.location.href = '/'
   }
   
@@ -141,17 +144,21 @@ export default function ProblemsPage() {
             await completeSession(Math.floor(elapsedTime / 1000))
           }
 
-          // 세션 요약 페이지로 이동
+          // 세션 요약 페이지로 이동 전에 세션 데이터 정리
+          clearProblemSessionData()
+          
           if (currentSession) {
             window.location.href = `/session-summary?sessionId=${currentSession.id}`
           } else {
             // 세션이 없는 경우 홈으로 이동
             alert('모든 문제를 완료했습니다! 수고하셨습니다.')
+            clearProblemSessionData()
             window.location.href = '/'
           }
         } else {
           // 비로그인 사용자는 홈으로 이동
           alert('모든 문제를 완료했습니다! 수고하셨습니다.')
+          clearProblemSessionData()
           window.location.href = '/'
         }
       } else {

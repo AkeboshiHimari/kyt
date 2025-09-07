@@ -11,6 +11,8 @@ import {
 } from '@/lib/filter-utils'
 import { useProblemSession } from '@/hooks/use-problem-session'
 
+const PROBLEM_SESSION_DATA_KEY = 'currentProblemSessionData'
+
 interface UseProblemManagementReturn {
   problems: ExtendedProblem[]
   currentProblemIndex: number
@@ -21,6 +23,7 @@ interface UseProblemManagementReturn {
   setCurrentProblemIndex: (index: number) => void
   setAnswerStatus: (status: 'correct' | 'partial' | 'incorrect' | null) => void
   handleAnswer: (status: 'correct' | 'partial' | 'incorrect') => void
+  clearProblemSessionData: () => void
 }
 
 export function useProblemManagement(): UseProblemManagementReturn {
@@ -42,13 +45,30 @@ export function useProblemManagement(): UseProblemManagementReturn {
 
   const initializeProblems = async () => {
     setIsLoading(true)
-    
+
+    const savedSessionData = sessionStorage.getItem(PROBLEM_SESSION_DATA_KEY)
+    if (savedSessionData) {
+      try {
+        const { problems, filters, subjectName } = JSON.parse(savedSessionData)
+        if (Array.isArray(problems) && problems.length > 0) {
+          setProblems(problems)
+          setFilters(filters)
+          setCurrentSubjectName(subjectName)
+          setIsLoading(false)
+          return
+        }
+      } catch (e) {
+        console.error('Failed to parse session data from sessionStorage', e)
+        sessionStorage.removeItem(PROBLEM_SESSION_DATA_KEY)
+      }
+    }
+
     try {
       // 1. localStorage에서 필터 정보 확인
       const savedFilters = getProblemFilters()
       if (savedFilters) {
         setFilters(savedFilters)
-        await generateProblems(savedFilters)
+        await generateProblems(savedFilters, '') // subjectName을 빈 문자열로 전달
         return
       }
 
@@ -58,30 +78,30 @@ export function useProblemManagement(): UseProblemManagementReturn {
         const subjectSettings = getSubjectSettings(subjectParam)
         if (subjectSettings) {
           const convertedFilters = convertSettingsToFilters(subjectSettings)
-          
+
           // 과목명 설정
           const actualSubjectName = getActualSubjectName(subjectParam)
           setCurrentSubjectName(actualSubjectName)
-          
+
           setFilters(convertedFilters)
-          await generateProblems(convertedFilters)
+          await generateProblems(convertedFilters, actualSubjectName)
           return
         }
-        
+
         // subject-settings가 없으면 현재 과목의 기본 필터 생성
         const actualSubjectName = getActualSubjectName(subjectParam)
         setCurrentSubjectName(actualSubjectName)
-        
+
         const defaultFilters = await createDefaultFilters(subjectParam)
         setFilters(defaultFilters)
-        await generateProblems(defaultFilters)
+        await generateProblems(defaultFilters, actualSubjectName)
         return
       }
-      
+
       // 3. 기본 필터로 문제 생성 (과목 정보 없음)
       const defaultFilters = await createDefaultFilters()
       setFilters(defaultFilters)
-      await generateProblems(defaultFilters)
+      await generateProblems(defaultFilters, '')
     } catch (error) {
       console.error('문제 초기화 실패:', error)
     } finally {
@@ -89,14 +109,21 @@ export function useProblemManagement(): UseProblemManagementReturn {
     }
   }
 
-  const generateProblems = async (filterOptions: FilterOptions) => {
+  const generateProblems = async (filterOptions: FilterOptions, subjectName: string) => {
     try {
       const optionsWithUser = { ...filterOptions, userId: user?.id }
       const result = await problemGenerator.generateRandomProblems(optionsWithUser)
       setProblems(result.problems)
       setCurrentProblemIndex(0)
       setAnswerStatus(null)
-      
+
+      const sessionData = {
+        problems: result.problems,
+        filters: filterOptions,
+        subjectName: subjectName,
+      }
+      sessionStorage.setItem(PROBLEM_SESSION_DATA_KEY, JSON.stringify(sessionData))
+
       if (result.warning) {
         console.warn(result.warning)
       }
@@ -108,12 +135,16 @@ export function useProblemManagement(): UseProblemManagementReturn {
 
   const handleAnswer = (status: 'correct' | 'partial' | 'incorrect') => {
     setAnswerStatus(status)
-    
+
     // 즉시 다음 문제로 이동
     if (currentProblemIndex < problems.length - 1) {
       setCurrentProblemIndex(prev => prev + 1)
       setAnswerStatus(null)
     }
+  }
+
+  const clearProblemSessionData = () => {
+    sessionStorage.removeItem(PROBLEM_SESSION_DATA_KEY)
   }
 
   return {
@@ -125,6 +156,7 @@ export function useProblemManagement(): UseProblemManagementReturn {
     currentSubjectName,
     setCurrentProblemIndex,
     setAnswerStatus,
-    handleAnswer
+    handleAnswer,
+    clearProblemSessionData
   }
 }
