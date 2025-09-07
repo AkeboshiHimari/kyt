@@ -117,10 +117,7 @@ export function AdminClient({ pendingUsers, currentUser }: AdminClientProps) {
   return (
     <div className="flex flex-col h-full px-6 xl:px-8 py-4">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">관리자 대시보드</h1>
-        <p className="text-muted-foreground">
-          사용자 계정을 관리하고 권한을 설정할 수 있습니다.
-        </p>
+        <h1 className="text-4xl mb-2">관리자 대시보드</h1>
       </div>
 
       {/* 통계 카드들 */}
