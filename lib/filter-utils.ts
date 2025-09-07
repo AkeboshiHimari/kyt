@@ -73,6 +73,35 @@ export function getSubjectSettings(subjectParam: string): SubjectSettings | null
 }
 
 /**
+ * API를 통해 데이터베이스에서 사용자 설정을 가져옵니다.
+ */
+export async function fetchUserSettings(subjectParam: string): Promise<SubjectSettings | null> {
+  try {
+    const response = await fetch(`/api/user-settings/${subjectParam}`)
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log(`No settings found in DB for subject: ${subjectParam}`)
+        return null
+      }
+      throw new Error(`Failed to fetch settings: ${response.statusText}`)
+    }
+    const settingsData = await response.json()
+
+    // subjectId와 subjectValue를 추가하여 완전한 SubjectSettings 객체를 만듭니다.
+    const subjectId = await getSubjectIdByParam(subjectParam)
+
+    return {
+      ...settingsData,
+      subjectValue: subjectParam,
+      subjectId: subjectId,
+    }
+  } catch (error) {
+    console.error('Error fetching user settings:', error)
+    return null
+  }
+}
+
+/**
  * localStorage에서 문제 필터를 가져옵니다.
  */
 export function getProblemFilters(): FilterOptions | null {
@@ -95,26 +124,13 @@ export async function createDefaultFilters(subjectParam?: string): Promise<Filte
     const subjectId = await getSubjectIdByParam(subjectParam)
     return {
       subjects: subjectId ? [subjectId] : [],
-      difficultyRange: [1, 5] as [number, number],
+      difficultyRange: [0, 3] as [number, number],
       totalProblems: 10
     }
   }
   
   return {
-    difficultyRange: [1, 5] as [number, number],
+    difficultyRange: [0, 3] as [number, number],
     totalProblems: 10
   }
-}
-
-/**
- * URL에서 과목 파라미터를 추출합니다.
- */
-export function extractSubjectFromUrl(): string | null {
-  if (typeof window === 'undefined') return null
-  
-  const urlParams = new URLSearchParams(window.location.search)
-  const subjectFromQuery = urlParams.get('subject')
-  const subjectFromPath = window.location.pathname.split('/')[1]
-  
-  return subjectFromQuery || subjectFromPath || null
 }

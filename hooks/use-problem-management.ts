@@ -6,8 +6,8 @@ import {
   getSubjectSettings,
   convertSettingsToFilters,
   createDefaultFilters,
-  extractSubjectFromUrl,
-  getActualSubjectName
+  getActualSubjectName,
+  fetchUserSettings
 } from '@/lib/filter-utils'
 import { useProblemSession } from '@/hooks/use-problem-session'
 
@@ -26,7 +26,7 @@ interface UseProblemManagementReturn {
   clearProblemSessionData: () => void
 }
 
-export function useProblemManagement(): UseProblemManagementReturn {
+export function useProblemManagement(subjectParam: string): UseProblemManagementReturn {
   const [problems, setProblems] = useState<ExtendedProblem[]>([])
   const [currentProblemIndex, setCurrentProblemIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -41,21 +41,27 @@ export function useProblemManagement(): UseProblemManagementReturn {
     if (!isSessionLoading) {
       initializeProblems()
     }
-  }, [user, isSessionLoading]) // user가 변경될 때 문제 재생성
+  }, [user?.id, isSessionLoading, subjectParam]) // user 객체 대신 user.id를 사용하여 불필요한 재실행 방지
 
   const initializeProblems = async () => {
     setIsLoading(true)
+    let forceNewFilters = false
 
     const savedSessionData = sessionStorage.getItem(PROBLEM_SESSION_DATA_KEY)
     if (savedSessionData) {
       try {
-        const { problems, filters, subjectName } = JSON.parse(savedSessionData)
-        if (Array.isArray(problems) && problems.length > 0) {
-          setProblems(problems)
-          setFilters(filters)
-          setCurrentSubjectName(subjectName)
-          setIsLoading(false)
-          return
+        const { problems, filters, subjectName, subjectParam: savedSubjectParam } = JSON.parse(savedSessionData)
+        if (subjectParam === savedSubjectParam) {
+          if (Array.isArray(problems) && problems.length > 0) {
+            setProblems(problems)
+            setFilters(filters)
+            setCurrentSubjectName(subjectName)
+            setIsLoading(false)
+            return
+          }
+        } else {
+          sessionStorage.removeItem(PROBLEM_SESSION_DATA_KEY)
+          forceNewFilters = true
         }
       } catch (e) {
         console.error('Failed to parse session data from sessionStorage', e)
@@ -64,44 +70,44 @@ export function useProblemManagement(): UseProblemManagementReturn {
     }
 
     try {
-      // 1. localStorage에서 필터 정보 확인
-      const savedFilters = getProblemFilters()
-      if (savedFilters) {
-        setFilters(savedFilters)
-        await generateProblems(savedFilters, '') // subjectName을 빈 문자열로 전달
-        return
-      }
-
-      // 2. subject-settings에서 설정값 가져오기 시도
-      const subjectParam = extractSubjectFromUrl()
-      if (subjectParam) {
-        const subjectSettings = getSubjectSettings(subjectParam)
-        if (subjectSettings) {
-          const convertedFilters = convertSettingsToFilters(subjectSettings)
-
-          // 과목명 설정
-          const actualSubjectName = getActualSubjectName(subjectParam)
-          setCurrentSubjectName(actualSubjectName)
-
-          setFilters(convertedFilters)
-          await generateProblems(convertedFilters, actualSubjectName)
+      // 1. DB에서 사용자 설정 가져오기 (최우선)
+      if (user) {
+        const dbSettings = await fetchUserSettings(subjectParam)
+        if (dbSettings) {
+          const filters = convertSettingsToFilters(dbSettings)
+          setFilters(filters)
+          const subjectName = getActualSubjectName(subjectParam)
+          setCurrentSubjectName(subjectName)
+          await generateProblems(filters, subjectName, subjectParam)
           return
         }
+      }
 
-        // subject-settings가 없으면 현재 과목의 기본 필터 생성
-        const actualSubjectName = getActualSubjectName(subjectParam)
-        setCurrentSubjectName(actualSubjectName)
-
-        const defaultFilters = await createDefaultFilters(subjectParam)
-        setFilters(defaultFilters)
-        await generateProblems(defaultFilters, actualSubjectName)
+      // 2. localStorage(subject-settings)에서 설정값 가져오기 시도
+      const localSettings = getSubjectSettings(subjectParam)
+      if (localSettings) {
+        const filters = convertSettingsToFilters(localSettings)
+        setFilters(filters)
+        const subjectName = getActualSubjectName(subjectParam)
+        setCurrentSubjectName(subjectName)
+        await generateProblems(filters, subjectName, subjectParam)
+        return
+      }
+      
+      // 3. localStorage(problemFilters)에서 필터 정보 확인 (하위 호환성)
+      const savedFilters = getProblemFilters()
+      if (savedFilters && !forceNewFilters) {
+        setFilters(savedFilters)
+        await generateProblems(savedFilters, '', subjectParam)
         return
       }
 
-      // 3. 기본 필터로 문제 생성 (과목 정보 없음)
-      const defaultFilters = await createDefaultFilters()
+      // 4. 기본 필터로 문제 생성 (과목 정보 없음)
+      const actualSubjectName = getActualSubjectName(subjectParam)
+      setCurrentSubjectName(actualSubjectName)
+      const defaultFilters = await createDefaultFilters(subjectParam)
       setFilters(defaultFilters)
-      await generateProblems(defaultFilters, '')
+      await generateProblems(defaultFilters, actualSubjectName, subjectParam)
     } catch (error) {
       console.error('문제 초기화 실패:', error)
     } finally {
@@ -109,7 +115,7 @@ export function useProblemManagement(): UseProblemManagementReturn {
     }
   }
 
-  const generateProblems = async (filterOptions: FilterOptions, subjectName: string) => {
+  const generateProblems = async (filterOptions: FilterOptions, subjectName: string, subjectParam: string) => {
     try {
       const optionsWithUser = { ...filterOptions, userId: user?.id }
       const result = await problemGenerator.generateRandomProblems(optionsWithUser)
@@ -121,6 +127,7 @@ export function useProblemManagement(): UseProblemManagementReturn {
         problems: result.problems,
         filters: filterOptions,
         subjectName: subjectName,
+        subjectParam: subjectParam,
       }
       sessionStorage.setItem(PROBLEM_SESSION_DATA_KEY, JSON.stringify(sessionData))
 

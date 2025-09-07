@@ -1,5 +1,6 @@
 'use client'
 
+import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ProblemHeader } from '@/components/problems/problem-header'
 import { ProblemDisplay } from '@/components/problems/problem-display'
@@ -19,6 +20,7 @@ type AnswerRecord = {
 }
 
 export default function ProblemsPage() {
+  const params = useParams<{ subject: string }>()
   const {
     problems,
     currentProblemIndex,
@@ -26,7 +28,7 @@ export default function ProblemsPage() {
     currentSubjectName,
     handleAnswer: originalHandleAnswer,
     clearProblemSessionData
-  } = useProblemManagement()
+  } = useProblemManagement(params.subject)
 
   const { elapsedTime, isPaused, togglePause, resetTimer, formatTime, isTimerStarted } = useProblemTimer()
   
