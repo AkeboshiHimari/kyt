@@ -8,7 +8,7 @@ interface UserSettingsData {
   selectedChapters: number[];
   selectedSubchapters: number[];
   selectedDifficulties: string[];
-  problemCount: number;
+  totalProblems: number;
 }
 
 // GET: 사용자의 과목별 설정 조회
@@ -72,7 +72,7 @@ export async function GET(
         selectedChapters: [],
         selectedSubchapters: [],
         selectedDifficulties: ['2', '3'],
-        problemCount: 10,
+        totalProblems: 10,
         isDefault: true
       });
     }
@@ -82,7 +82,7 @@ export async function GET(
       selectedChapters: settings.selected_chapters || [],
       selectedSubchapters: settings.selected_subchapters || [],
       selectedDifficulties: settings.selected_difficulties || ['2', '3'],
-      problemCount: settings.problem_count || 10,
+      totalProblems: settings.problem_count || 10,
       isDefault: false
     });
 
@@ -126,7 +126,7 @@ export async function POST(
         !Array.isArray(settingsData.selectedChapters) ||
         !Array.isArray(settingsData.selectedSubchapters) ||
         !Array.isArray(settingsData.selectedDifficulties) ||
-        typeof settingsData.problemCount !== 'number') {
+        typeof settingsData.totalProblems !== 'number') {
       return NextResponse.json(
         { error: '잘못된 설정 데이터입니다.' },
         { status: 400 }
@@ -134,7 +134,7 @@ export async function POST(
     }
 
     // 문제 수 범위 검사
-    if (settingsData.problemCount < 1 || settingsData.problemCount > 20) {
+    if (settingsData.totalProblems < 1 || settingsData.totalProblems > 20) {
       return NextResponse.json(
         { error: '문제 수는 1~20 사이여야 합니다.' },
         { status: 400 }
@@ -165,7 +165,7 @@ export async function POST(
         selected_chapters: settingsData.selectedChapters,
         selected_subchapters: settingsData.selectedSubchapters,
         selected_difficulties: settingsData.selectedDifficulties,
-        problem_count: settingsData.problemCount,
+        problem_count: settingsData.totalProblems,
       }, {
         onConflict: 'user_id,subject_id'
       })
@@ -187,7 +187,7 @@ export async function POST(
         selectedChapters: data.selected_chapters,
         selectedSubchapters: data.selected_subchapters,
         selectedDifficulties: data.selected_difficulties,
-        problemCount: data.problem_count,
+        totalProblems: data.problem_count,
       }
     });
 

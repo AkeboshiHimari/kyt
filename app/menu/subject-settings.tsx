@@ -85,7 +85,7 @@ export function SubjectSettings({
 				setSelectedChapters(data.selectedChapters || []);
 				setSelectedSubchapters(data.selectedSubchapters || []);
 				setSelectedDifficulties(data.selectedDifficulties || ["2", "3"]);
-				setTotalProblems(data.problemCount || 10);
+				setTotalProblems(data.totalProblems || 10);
 			}
 
 		} catch (error) {
@@ -160,7 +160,7 @@ export function SubjectSettings({
 					selectedChapters: localSettings.selectedChapters || [],
 					selectedSubchapters: localSettings.selectedSubchapters || [],
 					selectedDifficulties: localSettings.selectedDifficulties || ["2", "3"],
-					problemCount: localSettings.totalProblems || 10,
+					totalProblems: localSettings.totalProblems || 10,
 				}),
 			});
 
@@ -321,7 +321,7 @@ export function SubjectSettings({
 					selectedChapters,
 					selectedSubchapters,
 					selectedDifficulties,
-					problemCount: totalProblems,
+					totalProblems,
 				}),
 			});
 
@@ -409,18 +409,7 @@ export function SubjectSettings({
 			description="문제 출제 범위와 난이도를 설정하세요"
 			footer={
 				<div className="space-y-3">
-					{/* 저장 상태 메시지 */}
-					{saveSuccess && (
-						<div className="text-sm text-green-600 bg-green-50 p-2 rounded-lg text-center">
-							✓ 설정이 성공적으로 저장되었습니다!
-						</div>
-					)}
-					{saveError && (
-						<div className="text-sm text-red-600 bg-red-50 p-2 rounded-lg text-center">
-							✗ {saveError}
-						</div>
-					)}
-					
+
 					<DrawerDialogClose 
 						variant="default" 
 						size="lg" 
