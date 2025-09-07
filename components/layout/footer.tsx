@@ -15,16 +15,16 @@ export default function Footer() {
   }
 
   return (
-    <footer className="py-4">
-      <div className="flex gap-4">
+    <footer>
+      <div className="flex gap-4 justify-center">
         <Button variant="link" size="sm">
           <Link href="/terms">
-            <span className="text-sm">약관</span>
+            <span className="text-sm text-muted-foreground">약관</span>
           </Link>
         </Button>
         <Button variant="link" size="sm">
           <Link href="/privacy">
-            <span className="text-sm">개인정보처리방침</span>
+            <span className="text-sm text-muted-foreground">개인정보처리방침</span>
           </Link>
         </Button>
       </div>

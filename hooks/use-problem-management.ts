@@ -9,6 +9,7 @@ import {
   extractSubjectFromUrl,
   getActualSubjectName
 } from '@/lib/filter-utils'
+import { useProblemSession } from '@/hooks/use-problem-session'
 
 interface UseProblemManagementReturn {
   problems: ExtendedProblem[]
@@ -29,12 +30,15 @@ export function useProblemManagement(): UseProblemManagementReturn {
   const [filters, setFilters] = useState<FilterOptions>({})
   const [answerStatus, setAnswerStatus] = useState<'correct' | 'partial' | 'incorrect' | null>(null)
   const [currentSubjectName, setCurrentSubjectName] = useState<string>('')
+  const { user, isLoading: isSessionLoading } = useProblemSession()
 
   const problemGenerator = new ProblemGenerator()
 
   useEffect(() => {
-    initializeProblems()
-  }, [])
+    if (!isSessionLoading) {
+      initializeProblems()
+    }
+  }, [user, isSessionLoading]) // user가 변경될 때 문제 재생성
 
   const initializeProblems = async () => {
     setIsLoading(true)
@@ -87,7 +91,8 @@ export function useProblemManagement(): UseProblemManagementReturn {
 
   const generateProblems = async (filterOptions: FilterOptions) => {
     try {
-      const result = await problemGenerator.generateRandomProblems(filterOptions)
+      const optionsWithUser = { ...filterOptions, userId: user?.id }
+      const result = await problemGenerator.generateRandomProblems(optionsWithUser)
       setProblems(result.problems)
       setCurrentProblemIndex(0)
       setAnswerStatus(null)

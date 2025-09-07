@@ -5,12 +5,11 @@ import {
 	AccordionTrigger,
 } from "@/components/ui/accordion";
 import { PlayIcon, SettingsIcon } from "lucide-react";
-import { SubjectCard } from "@/app/freestyle/subject-card";
+import { SubjectCard } from "@/app/menu/subject-card";
 
 export default function Home() {
 	return (
 		<div className="flex flex-col h-full px-6 xl:px-8 py-4">
-			<h1 className="text-2xl font-semibold">Freestyle</h1>
 			<div className="flex-1 flex items-center">
 				<Accordion type="single" collapsible>
 					<AccordionItem value="physics">
