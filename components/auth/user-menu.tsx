@@ -84,7 +84,7 @@ export function UserMenu() {
         console.error('로그아웃 실패:', error)
         alert('로그아웃 중 오류가 발생했습니다.')
       } else {
-        router.push('/login')
+        router.push('/')
       }
     } catch (error) {
       console.error('예상치 못한 오류:', error)
@@ -105,8 +105,9 @@ export function UserMenu() {
   if (!user) {
     return (
       <Button 
-        onClick={() => router.push('/login')}
-        variant="outline"
+        onClick={() => router.push('/')}
+        variant="default"
+        className="rounded-full"
       >
         로그인
       </Button>
