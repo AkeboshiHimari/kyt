@@ -199,12 +199,9 @@ export function RatingOverview({
 					</div>
 				)}
 				<div className="flex justify-between items-center">
-					<span className="text-gray-600 dark:text-gray-400">푼 문제 수 보너스</span>
+					<span className="text-gray-600 dark:text-gray-400">푼 문제 수 보너스 ({solvedProblemCount}문제)</span>
 					<span className="font-medium">
-						+{problemCountBonus}{" "}
-						<span className="text-sm text-gray-500 dark:text-gray-400">
-							({solvedProblemCount}문제)
-						</span>
+						+{problemCountBonus}
 					</span>
 				</div>
 				<div className="flex justify-between items-center">
@@ -213,7 +210,7 @@ export function RatingOverview({
 				</div>
 				<hr className="my-3" />
 				<div className="flex justify-between items-center font-semibold">
-					<span>총 점수</span>
+					<span>총 레이팅	</span>
 					<span>{totalRating}</span>
 				</div>
 			</div>
