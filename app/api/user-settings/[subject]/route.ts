@@ -71,7 +71,7 @@ export async function GET(
         selectedTextbooks: [],
         selectedChapters: [],
         selectedSubchapters: [],
-        selectedDifficulties: ['2', '3'],
+        selectedDifficulties: ['1', '2', '3'],
         totalProblems: 10,
         isDefault: true
       });

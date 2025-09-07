@@ -68,14 +68,11 @@ export default function ProblemsPage() {
           setSessionStarted(true)
           resetTimer()
         }
-      } else if (!isLoading && problems.length > 0 && !isTimerStarted && !user) {
-        // 비로그인 사용자는 세션 없이 타이머만 시작
-        resetTimer()
       }
     }
     
     initializeSession()
-  }, [isLoading, problems.length, isTimerStarted, resetTimer, user, currentSession, sessionStarted, startSession])
+  }, [isLoading, problems.length, resetTimer, user, currentSession, sessionStarted, startSession])
   
   // 에러 표시
   useEffect(() => {
@@ -131,34 +128,25 @@ export default function ProblemsPage() {
       const isLastProblem = currentProblemIndex === problems.length - 1
       
       if (isLastProblem) {
-        // 로그인한 사용자의 경우, 세션 완료 및 기록/통계 배치 업데이트
-        if (user) {
-          // [!!!FIX!!!] Promise.all을 제거하고 순차적으로 실행하여 경합 조건을 방지합니다.
-          // 1. 먼저 답안을 기록하고 문제 진행 상태(streak)를 업데이트합니다. 통계 계산 전에 이 작업이 반드시 완료되어야 합니다.
-          await batchRecordAnswers(updatedAnswers, currentSession?.id)
-          
-          // 2. 업데이트된 진행 상태를 기반으로 통계와 레이팅을 계산합니다.
-          await batchUpdateStatistics(updatedAnswers)
-          
-          // 3. 모든 계산이 끝난 후 세션을 완료합니다.
-          if (currentSession) {
-            // elapsedTime을 밀리초에서 초로 변환
-            await completeSession(Math.floor(elapsedTime / 1000))
-          }
+        // 1. 먼저 답안을 기록하고 문제 진행 상태(streak)를 업데이트합니다. 통계 계산 전에 이 작업이 반드시 완료되어야 합니다.
+        await batchRecordAnswers(updatedAnswers, currentSession?.id)
+        
+        // 2. 업데이트된 진행 상태를 기반으로 통계와 레이팅을 계산합니다.
+        await batchUpdateStatistics(updatedAnswers)
+        
+        // 3. 모든 계산이 끝난 후 세션을 완료합니다.
+        if (currentSession) {
+          // elapsedTime을 밀리초에서 초로 변환
+          await completeSession(Math.floor(elapsedTime / 1000))
+        }
 
-          // 세션 요약 페이지로 이동 전에 세션 데이터 정리
-          clearProblemSessionData()
-          
-          if (currentSession) {
-            window.location.href = `/session-summary?sessionId=${currentSession.id}`
-          } else {
-            // 세션이 없는 경우 홈으로 이동
-            alert('모든 문제를 완료했습니다! 수고하셨습니다.')
-            clearProblemSessionData()
-            window.location.href = '/'
-          }
+        // 세션 요약 페이지로 이동 전에 세션 데이터 정리
+        clearProblemSessionData()
+        
+        if (currentSession) {
+          window.location.href = `/session-summary?sessionId=${currentSession.id}`
         } else {
-          // 비로그인 사용자는 홈으로 이동
+          // 세션이 없는 경우 홈으로 이동
           alert('모든 문제를 완료했습니다! 수고하셨습니다.')
           clearProblemSessionData()
           window.location.href = '/'

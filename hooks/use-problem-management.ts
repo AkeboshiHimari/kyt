@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react'
 import type { ExtendedProblem, FilterOptions } from '@/lib/db-types'
 import { ProblemGenerator } from '@/lib/problem-generator'
 import {
-  getProblemFilters,
-  getSubjectSettings,
   convertSettingsToFilters,
   createDefaultFilters,
   getActualSubjectName,
@@ -70,7 +68,7 @@ export function useProblemManagement(subjectParam: string): UseProblemManagement
     }
 
     try {
-      // 1. DB에서 사용자 설정 가져오기 (최우선)
+      // 1. DB에서 사용자 설정 가져오기
       if (user) {
         const dbSettings = await fetchUserSettings(subjectParam)
         if (dbSettings) {
@@ -83,26 +81,7 @@ export function useProblemManagement(subjectParam: string): UseProblemManagement
         }
       }
 
-      // 2. localStorage(subject-settings)에서 설정값 가져오기 시도
-      const localSettings = getSubjectSettings(subjectParam)
-      if (localSettings) {
-        const filters = convertSettingsToFilters(localSettings)
-        setFilters(filters)
-        const subjectName = getActualSubjectName(subjectParam)
-        setCurrentSubjectName(subjectName)
-        await generateProblems(filters, subjectName, subjectParam)
-        return
-      }
-      
-      // 3. localStorage(problemFilters)에서 필터 정보 확인 (하위 호환성)
-      const savedFilters = getProblemFilters()
-      if (savedFilters && !forceNewFilters) {
-        setFilters(savedFilters)
-        await generateProblems(savedFilters, '', subjectParam)
-        return
-      }
-
-      // 4. 기본 필터로 문제 생성 (과목 정보 없음)
+      // 2. 기본 필터로 문제 생성
       const actualSubjectName = getActualSubjectName(subjectParam)
       setCurrentSubjectName(actualSubjectName)
       const defaultFilters = await createDefaultFilters(subjectParam)

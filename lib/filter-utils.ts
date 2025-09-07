@@ -58,21 +58,6 @@ export async function getSubjectIdByParam(subjectParam: string): Promise<number 
 }
 
 /**
- * localStorage에서 과목 설정을 가져옵니다.
- */
-export function getSubjectSettings(subjectParam: string): SubjectSettings | null {
-  const settingsJson = localStorage.getItem(`subject-settings-${subjectParam}`)
-  if (!settingsJson) return null
-  
-  try {
-    return JSON.parse(settingsJson) as SubjectSettings
-  } catch (error) {
-    console.error('설정 파싱 오류:', error)
-    return null
-  }
-}
-
-/**
  * API를 통해 데이터베이스에서 사용자 설정을 가져옵니다.
  */
 export async function fetchUserSettings(subjectParam: string): Promise<SubjectSettings | null> {
@@ -97,21 +82,6 @@ export async function fetchUserSettings(subjectParam: string): Promise<SubjectSe
     }
   } catch (error) {
     console.error('Error fetching user settings:', error)
-    return null
-  }
-}
-
-/**
- * localStorage에서 문제 필터를 가져옵니다.
- */
-export function getProblemFilters(): FilterOptions | null {
-  const filtersJson = localStorage.getItem('problemFilters')
-  if (!filtersJson) return null
-  
-  try {
-    return JSON.parse(filtersJson) as FilterOptions
-  } catch (error) {
-    console.error('필터 파싱 오류:', error)
     return null
   }
 }

@@ -65,115 +65,31 @@ export function SubjectSettings({
 			const response = await fetch(`/api/user-settings/${subjectValue}`);
 			
 			if (!response.ok) {
-				if (response.status === 401) {
-					// 인증되지 않은 사용자의 경우 localStorage에서 설정 로드
-					loadSettingsFromLocalStorage();
-					return;
-				}
-				throw new Error('설정을 불러오는데 실패했습니다.');
+				// 401 인증 오류를 포함하여 모든 실패 케이스에서 에러 발생
+				throw new Error(`설정을 불러오는데 실패했습니다: ${response.statusText}`);
 			}
 
 			const data = await response.json();
 			
 			// 데이터베이스에서 설정 로드
-			if (data.isDefault) {
-				// 기본값인 경우 설정을 적용하지 않고 기존 기본값 유지
-				// (loadSubjectData에서 이미 기본값이 설정됨)
-			} else {
+			if (!data.isDefault) {
 				// 사용자가 설정한 값이 있는 경우에만 적용
 				setSelectedTextbooks(data.selectedTextbooks || []);
 				setSelectedChapters(data.selectedChapters || []);
 				setSelectedSubchapters(data.selectedSubchapters || []);
-				setSelectedDifficulties(data.selectedDifficulties || ["2", "3"]);
+				setSelectedDifficulties(data.selectedDifficulties || ["1", "2", "3"]);
 				setTotalProblems(data.totalProblems || 10);
 			}
+			// isDefault가 true인 경우 (DB에 설정이 없는 경우)
+			// loadSubjectData에서 설정한 기본값을 그대로 사용합니다.
 
 		} catch (error) {
 			console.error('사용자 설정 로드 오류:', error);
-			// 오류 발생 시 localStorage에서 설정 로드
-			loadSettingsFromLocalStorage();
+			// 오류 발생 시에도 loadSubjectData에서 설정한 기본값을 유지합니다.
 		}
 	};
 
-	// localStorage에서 설정 로드 (fallback)
-	const loadSettingsFromLocalStorage = () => {
-		try {
-			const savedSettings = localStorage.getItem(`subject-settings-${subjectValue}`);
-			if (savedSettings) {
-				const settings = JSON.parse(savedSettings);
-				// localStorage에 있는 설정이 유효한 경우에만 적용
-				if (settings.selectedTextbooks && settings.selectedTextbooks.length > 0) {
-					setSelectedTextbooks(settings.selectedTextbooks);
-				}
-				if (settings.selectedChapters && settings.selectedChapters.length > 0) {
-					setSelectedChapters(settings.selectedChapters);
-				}
-				if (settings.selectedSubchapters && settings.selectedSubchapters.length > 0) {
-					setSelectedSubchapters(settings.selectedSubchapters);
-				}
-				if (settings.selectedDifficulties && settings.selectedDifficulties.length > 0) {
-					setSelectedDifficulties(settings.selectedDifficulties);
-				}
-				if (settings.totalProblems && settings.totalProblems > 0) {
-					setTotalProblems(settings.totalProblems);
-				}
-
-				// 인증된 사용자의 경우 localStorage 데이터를 DB로 마이그레이션 시도
-				migrateLocalStorageToDatabase(settings);
-			}
-			// localStorage에 설정이 없으면 기본값 유지 (loadSubjectData에서 이미 설정됨)
-		} catch (error) {
-			console.error('localStorage 설정 로드 오류:', error);
-			// 오류 발생 시 기본값 유지 (loadSubjectData에서 이미 설정됨)
-		}
-	};
-
-	// localStorage 데이터를 데이터베이스로 마이그레이션
-	const migrateLocalStorageToDatabase = async (localSettings: {
-		selectedTextbooks?: number[];
-		selectedChapters?: number[];
-		selectedSubchapters?: number[];
-		selectedDifficulties?: string[];
-		totalProblems?: number;
-	}) => {
-		try {
-			// 사용자 인증 상태 확인
-			const { data: { user } } = await supabase.auth.getUser();
-			if (!user) return;
-
-			// 이미 DB에 설정이 있는지 확인
-			const response = await fetch(`/api/user-settings/${subjectValue}`);
-			if (response.ok) {
-				const data = await response.json();
-				// 기본값이 아닌 경우 (이미 DB에 설정이 있음) 마이그레이션 건너뛰기
-				if (!data.isDefault) return;
-			}
-
-			// localStorage 설정을 DB로 저장
-			const migrateResponse = await fetch(`/api/user-settings/${subjectValue}`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					selectedTextbooks: localSettings.selectedTextbooks || [],
-					selectedChapters: localSettings.selectedChapters || [],
-					selectedSubchapters: localSettings.selectedSubchapters || [],
-					selectedDifficulties: localSettings.selectedDifficulties || ["2", "3"],
-					totalProblems: localSettings.totalProblems || 10,
-				}),
-			});
-
-			if (migrateResponse.ok) {
-				console.log('localStorage 설정이 데이터베이스로 성공적으로 마이그레이션되었습니다.');
-				// 마이그레이션 완료 후 localStorage에서 해당 설정 제거 (선택사항)
-				// localStorage.removeItem(`subject-settings-${subjectValue}`);
-			}
-		} catch (error) {
-			console.error('데이터 마이그레이션 오류:', error);
-			// 마이그레이션 실패는 치명적이지 않으므로 계속 진행
-		}
-	};
+	// localStorage 데이터를 데이터베이스로 마이그레이션 (더 이상 필요 없음)
 
 	const loadSubjectData = async () => {
 		setIsLoading(true);
@@ -227,7 +143,7 @@ export function SubjectSettings({
 				
 				// 기본값 설정
 				const defaultTextbooks = textbookData.length > 0 ? [textbookData[0].id] : [];
-				const defaultDifficulties = ["2", "3"];
+				const defaultDifficulties = ["1", "2", "3"];
 				const defaultProblemCount = 10;
 				
 				setSelectedTextbooks(defaultTextbooks);
@@ -310,7 +226,7 @@ export function SubjectSettings({
 		setSaveSuccess(false);
 
 		try {
-			// 먼저 데이터베이스에 저장 시도
+			// 데이터베이스에 저장 시도
 			const response = await fetch(`/api/user-settings/${subjectValue}`, {
 				method: 'POST',
 				headers: {
@@ -326,12 +242,6 @@ export function SubjectSettings({
 			});
 
 			if (!response.ok) {
-				if (response.status === 401) {
-					// 인증되지 않은 사용자의 경우 localStorage에만 저장
-					saveToLocalStorage();
-					setSaveSuccess(true);
-					return;
-				}
 				const errorData = await response.json();
 				throw new Error(errorData.error || '설정 저장에 실패했습니다.');
 			}
