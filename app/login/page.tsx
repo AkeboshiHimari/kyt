@@ -1,5 +1,6 @@
 import { GoogleLoginButton } from "@/components/auth/google-login-button";
 import Link from "next/link";
+export const dynamic = 'force-dynamic'
 
 export default function LoginPage() {
 	// Middleware에서 인증 상태를 확인하고 리다이렉트를 처리합니다
