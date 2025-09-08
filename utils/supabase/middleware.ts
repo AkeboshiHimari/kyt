@@ -29,119 +29,85 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
+  // IMPORTANT: DO NOT REMOVE auth.getUser()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Vercel Routing Middleware에서 인증 기반 리디렉션 처리
-  const url = request.nextUrl.clone()
+  // Define public paths that don't require authentication
+  const publicPaths = [
+    '/',
+    '/login',
+    '/auth/callback',
+    '/auth/auth-code-error',
+    '/terms',
+    '/privacy',
+  ]
+  
+  const isPublicPath = publicPaths.some((path) => {
+    if (path === '/') {
+      return request.nextUrl.pathname === '/'
+    }
+    return request.nextUrl.pathname.startsWith(path)
+  })
 
-  // 인증이 필요한 경로들
-  const protectedPaths = ['/menu', '/profile', '/settings', '/admin', '/problems']
-  const publicPaths = ['/login', '/auth', '/terms', '/privacy', '/']
+  // If it's a public path, allow access but redirect logged-in users away from login
+  if (isPublicPath) {
+    if (user && request.nextUrl.pathname === '/login') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/menu'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
 
-  const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))
-  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path))
-
-  // 비로그인 사용자가 보호된 경로에 접근하는 경우
-  if (!user && isProtectedPath) {
+  // For protected paths, redirect unauthenticated users to login
+  if (!user) {
+    const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url, {
-      status: 302,
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    })
+    return NextResponse.redirect(url)
   }
 
-  // 로그인한 사용자가 로그인 페이지에 접근하는 경우
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
-    url.pathname = '/menu'
-    return NextResponse.redirect(url, {
-      status: 302,
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    })
-  }
-
-  // 루트 경로 처리
-  if (request.nextUrl.pathname === '/') {
-    url.pathname = user ? '/menu' : '/login'
-    return NextResponse.redirect(url, {
-      status: 302,
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    })
-  }
-
-  // 역할 기반 리디렉션 (인증된 사용자만)
+  // Handle role-based access control for authenticated users
+  // Only fetch profile if user exists and we need role information
   if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
     const isAccountPendingPage = request.nextUrl.pathname.startsWith('/account-pending')
     const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
+    
+    // Only query profile if we need role-based logic
+    if (isAccountPendingPage || isAdminPath) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
 
-    if (profile) {
-      const { role } = profile
-      
-      if (role === 'pending' && !isAccountPendingPage) {
-        url.pathname = '/account-pending'
-        return NextResponse.redirect(url, {
-          status: 302,
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        })
-      }
-      
-      if (role !== 'pending' && isAccountPendingPage) {
-        url.pathname = '/menu'
-        return NextResponse.redirect(url, {
-          status: 302,
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        })
-      }
-      
-      if (role !== 'admin' && isAdminPath) {
-        url.pathname = '/menu'
-        return NextResponse.redirect(url, {
-          status: 302,
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        })
+      if (profile) {
+        const { role } = profile
+        
+        // Redirect users with pending role to account-pending page
+        if (role === 'pending' && !isAccountPendingPage) {
+          const url = request.nextUrl.clone()
+          url.pathname = '/account-pending'
+          return NextResponse.redirect(url)
+        }
+        
+        // Redirect approved users away from account-pending page
+        if (role !== 'pending' && isAccountPendingPage) {
+          const url = request.nextUrl.clone()
+          url.pathname = '/menu'
+          return NextResponse.redirect(url)
+        }
+        
+        // Restrict admin access to admin users only
+        if (role !== 'admin' && isAdminPath) {
+          const url = request.nextUrl.clone()
+          url.pathname = '/menu'
+          return NextResponse.redirect(url)
+        }
       }
     }
   }
-
-  // 캐시 무효화 헤더 추가
-  supabaseResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
-  supabaseResponse.headers.set('Pragma', 'no-cache')
-  supabaseResponse.headers.set('Expires', '0')
 
   return supabaseResponse
 }

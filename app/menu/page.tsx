@@ -4,10 +4,10 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
+import { PlayIcon, SettingsIcon } from "lucide-react";
 import { SubjectCard } from "@/app/menu/subject-card";
 
-// 미들웨어에서 인증 상태를 확인하고 리다이렉트를 처리합니다
-export default function MenuPage() {
+export default function Home() {
 	return (
 		<div className="flex flex-col h-full px-6 xl:px-8 py-4">
 			<div className="flex-1 flex items-center">

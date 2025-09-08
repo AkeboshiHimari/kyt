@@ -52,12 +52,6 @@ export function UserMenu() {
           setProfileLoaded(false)
         }
         
-        // 로그인 상태가 변경되었을 때 즉시 반영
-        if (event === 'SIGNED_IN' && currentUser) {
-          // 프로필 데이터 미리 로드
-          loadProfile()
-        }
-        
         setIsLoading(false)
       }
     )
@@ -90,13 +84,16 @@ export function UserMenu() {
         console.error('로그아웃 실패:', error)
         alert('로그아웃 중 오류가 발생했습니다.')
       } else {
-        // Clear local state
+        // Clear the user state immediately
         setUser(null)
         setProfile(null)
         setProfileLoaded(false)
         
-        // Force a hard navigation to ensure middleware runs
-        window.location.href = '/login'
+        // Refresh the router to update server components
+        router.refresh()
+        
+        // Navigate to login page
+        router.push('/login')
       }
     } catch (error) {
       console.error('예상치 못한 오류:', error)

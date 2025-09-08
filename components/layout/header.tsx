@@ -10,7 +10,6 @@ export default function Header() {
   
   // 헤더를 전체 숨길 페이지를 리스트로 관리
   const headerHiddenPages = [
-    '/', // 홈 페이지
     '/problems' // 문제 페이지 및 하위 페이지
   ];
   const isHeaderHidden = headerHiddenPages.some((page) =>
@@ -26,7 +25,7 @@ export default function Header() {
   return (
     <header className="flex justify-between items-center py-4">
       <Button variant="link" size="lg">
-        <Link href="/menu">
+        <Link href="/">
           <span className="text-2xl">kyt</span>
         </Link>
       </Button>

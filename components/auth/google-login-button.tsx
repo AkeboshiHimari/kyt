@@ -12,7 +12,7 @@ interface GoogleLoginButtonProps {
 }
 
 export function GoogleLoginButton({ 
-  redirectTo,
+  redirectTo = '/menu',
   className 
 }: GoogleLoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -26,7 +26,7 @@ export function GoogleLoginButton({
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectTo || (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback?next=/menu` : '/auth/callback?next=/menu'),
+          redirectTo: `${window.location.origin}/auth/callback?next=${redirectTo}`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -37,9 +37,6 @@ export function GoogleLoginButton({
       if (error) {
         console.error('Google 로그인 오류:', error.message)
         alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.')
-      } else {
-        // OAuth 리다이렉트가 시작되면 서버 상태를 새로고침
-        router.refresh()
       }
     } catch (error) {
       console.error('예상치 못한 오류:', error)
