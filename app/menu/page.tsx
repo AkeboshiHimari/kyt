@@ -1,6 +1,3 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import {
 	Accordion,
 	AccordionContent,
@@ -9,17 +6,8 @@ import {
 } from "@/components/ui/accordion";
 import { SubjectCard } from "@/app/menu/subject-card";
 
-export default async function MenuPage() {
-	const cookieStore = cookies()
-	const supabase = createClient(cookieStore)
-	
-	const { data: { user } } = await supabase.auth.getUser()
-	
-	// 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
-	if (!user) {
-		redirect('/login')
-	}
-
+// 미들웨어에서 인증 상태를 확인하고 리다이렉트를 처리합니다
+export default function MenuPage() {
 	return (
 		<div className="flex flex-col h-full px-6 xl:px-8 py-4">
 			<div className="flex-1 flex items-center">

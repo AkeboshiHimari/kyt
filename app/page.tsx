@@ -1,16 +1,4 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
-
-export default async function Home() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (user) {
-    redirect('/menu')
-  } else {
-    redirect('/login')
-  }
+// 미들웨어에서 리디렉션을 처리하므로 이 컴포넌트는 렌더링되지 않습니다
+export default function Home() {
+  return null
 }

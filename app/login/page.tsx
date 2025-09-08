@@ -1,20 +1,8 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import { GoogleLoginButton } from "@/components/auth/google-login-button";
 import Link from "next/link";
 
-export default async function LoginPage() {
-	const cookieStore = cookies()
-	const supabase = createClient(cookieStore)
-	
-	const { data: { user } } = await supabase.auth.getUser()
-	
-	// 이미 로그인된 사용자는 메뉴로 리다이렉트
-	if (user) {
-		redirect('/menu')
-	}
-
+// 미들웨어에서 인증 상태를 확인하고 리다이렉트를 처리합니다
+export default function LoginPage() {
 	return (
 		<div className="flex flex-col gap-4 items-center justify-center h-full">
 			<div className="flex flex-col gap-8 text-center items-center justify-vetween">
