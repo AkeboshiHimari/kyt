@@ -82,7 +82,9 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     const response = NextResponse.redirect(url)
-    response.cookies.setAll(supabaseResponse.cookies.getAll())
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      response.cookies.set(cookie)
+    }
     return response
   }
 
@@ -91,7 +93,9 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     const response = NextResponse.redirect(url)
-    response.cookies.setAll(supabaseResponse.cookies.getAll())
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      response.cookies.set(cookie)
+    }
     return response
   }
 
@@ -103,13 +107,17 @@ export async function updateSession(request: NextRequest) {
         const url = request.nextUrl.clone()
         url.pathname = '/account-pending'
         const response = NextResponse.redirect(url)
-        response.cookies.setAll(supabaseResponse.cookies.getAll())
+        for (const cookie of supabaseResponse.cookies.getAll()) {
+          response.cookies.set(cookie)
+        }
         return response
       } else {
         const url = request.nextUrl.clone()
         url.pathname = '/menu'
         const response = NextResponse.redirect(url)
-        response.cookies.setAll(supabaseResponse.cookies.getAll())
+        for (const cookie of supabaseResponse.cookies.getAll()) {
+          response.cookies.set(cookie)
+        }
         return response
       }
     }
@@ -122,7 +130,9 @@ export async function updateSession(request: NextRequest) {
         const url = request.nextUrl.clone()
         url.pathname = '/account-pending'
         const response = NextResponse.redirect(url)
-        response.cookies.setAll(supabaseResponse.cookies.getAll())
+        for (const cookie of supabaseResponse.cookies.getAll()) {
+          response.cookies.set(cookie)
+        }
         return response
       }
 
@@ -141,7 +151,9 @@ export async function updateSession(request: NextRequest) {
         const url = request.nextUrl.clone()
         url.pathname = '/menu'
         const response = NextResponse.redirect(url)
-        response.cookies.setAll(supabaseResponse.cookies.getAll())
+        for (const cookie of supabaseResponse.cookies.getAll()) {
+          response.cookies.set(cookie)
+        }
         return response
       }
 
@@ -150,7 +162,9 @@ export async function updateSession(request: NextRequest) {
         const url = request.nextUrl.clone()
         url.pathname = '/account-pending'
         const response = NextResponse.redirect(url)
-        response.cookies.setAll(supabaseResponse.cookies.getAll())
+        for (const cookie of supabaseResponse.cookies.getAll()) {
+          response.cookies.set(cookie)
+        }
         return response
       }
     } else {
@@ -162,7 +176,9 @@ export async function updateSession(request: NextRequest) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
         const response = NextResponse.redirect(url)
-        response.cookies.setAll(supabaseResponse.cookies.getAll())
+        for (const cookie of supabaseResponse.cookies.getAll()) {
+          response.cookies.set(cookie)
+        }
         return response
       }
     }
