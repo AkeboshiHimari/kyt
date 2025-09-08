@@ -1,13 +1,26 @@
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import {
 	Accordion,
 	AccordionContent,
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
-import { PlayIcon, SettingsIcon } from "lucide-react";
 import { SubjectCard } from "@/app/menu/subject-card";
 
-export default function Home() {
+export default async function MenuPage() {
+	// 서버에서 인증 상태 확인
+	const cookieStore = cookies()
+	const supabase = createClient(cookieStore)
+	
+	const { data: { user } } = await supabase.auth.getUser()
+	
+	// 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
+	if (!user) {
+		redirect('/login')
+	}
+
 	return (
 		<div className="flex flex-col h-full px-6 xl:px-8 py-4">
 			<div className="flex-1 flex items-center">

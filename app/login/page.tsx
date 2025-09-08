@@ -1,39 +1,20 @@
-'use client'
-
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { GoogleLoginButton } from "@/components/auth/google-login-button";
 import Link from "next/link";
 
-export default function LoginPage() {
-	const router = useRouter()
-	const supabase = createClient()
-
-	useEffect(() => {
-		// 현재 사용자 상태 확인
-		const checkUser = async () => {
-			const { data: { user } } = await supabase.auth.getUser()
-			if (user) {
-				router.replace('/menu')
-				return
-			}
-		}
-
-		checkUser()
-
-		// Auth 상태 변화 감지
-		const { data: { subscription } } = supabase.auth.onAuthStateChange(
-			async (event, session) => {
-				if (event === 'SIGNED_IN' && session?.user) {
-					// 로그인 완료시 즉시 리다이렉트
-					router.replace('/menu')
-				}
-			}
-		)
-
-		return () => subscription.unsubscribe()
-	}, [router, supabase])
+export default async function LoginPage() {
+	// 서버에서 인증 상태 확인
+	const cookieStore = cookies()
+	const supabase = createClient(cookieStore)
+	
+	const { data: { user } } = await supabase.auth.getUser()
+	
+	// 이미 로그인된 사용자는 즉시 메뉴로 리다이렉트
+	if (user) {
+		redirect('/menu')
+	}
 
 	return (
 		<div className="flex flex-col gap-4 items-center justify-center h-full">
@@ -41,7 +22,6 @@ export default function LoginPage() {
 				<h1 className="text-6xl">kyt</h1>
 				<GoogleLoginButton 
 					className="h-12 text-base rounded-full"
-					redirectTo={typeof window !== 'undefined' ? `${window.location.origin}/auth/callback?next=/menu` : undefined}
 				/>
 			</div>
 			<p className="text-muted-foreground text-xs">

@@ -11,11 +11,21 @@ export async function GET(request: Request) {
 	if (code) {
 		const cookieStore = cookies();
 		const supabase = createClient(cookieStore);
-		const { error } = await supabase.auth.exchangeCodeForSession(code);
-		if (!error) {
-			// Force a hard redirect to ensure middleware runs
-			const redirectUrl = new URL(next, origin);
-			return NextResponse.redirect(redirectUrl, { status: 302 });
+		const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+		
+		if (!error && data.session) {
+			// 세션이 성공적으로 생성되었을 때만 리다이렉트
+			// Cache-Control 헤더를 추가하여 브라우저 캐싱 방지
+			const response = NextResponse.redirect(new URL(next, origin), { 
+				status: 302,
+				headers: {
+					'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+					'Pragma': 'no-cache',
+					'Expires': '0'
+				}
+			});
+			
+			return response;
 		}
 	}
 
