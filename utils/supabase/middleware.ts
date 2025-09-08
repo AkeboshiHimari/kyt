@@ -30,99 +30,76 @@ export async function updateSession(request: NextRequest) {
   )
 
   // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
+  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  // IMPORTANT: Don't remove getClaims()
-  const { data } = await supabase.auth.getClaims()
-  const user = data?.claims
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // Get user profile if user exists
-  let userProfile = null
+  // Handle authentication redirects
+  if (
+    !user &&
+    !request.nextUrl.pathname.startsWith('/login') &&
+    !request.nextUrl.pathname.startsWith('/auth') &&
+    !request.nextUrl.pathname.startsWith('/terms') &&
+    !request.nextUrl.pathname.startsWith('/privacy')
+  ) {
+    // no user, redirect to login page
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  // If user is logged in and trying to access login page, redirect to menu
+  if (user && request.nextUrl.pathname.startsWith('/login')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/menu'
+    return NextResponse.redirect(url)
+  }
+
+  // Handle root path redirect
+  if (request.nextUrl.pathname === '/') {
+    const url = request.nextUrl.clone()
+    if (user) {
+      url.pathname = '/menu'
+    } else {
+      url.pathname = '/login'
+    }
+    return NextResponse.redirect(url)
+  }
+
+  // Handle role-based redirects for authenticated users
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', user.sub)
+      .eq('id', user.id)
       .single()
-    userProfile = profile
-  }
 
-  const publicPaths = [
-    '/login',
-    '/auth/callback',
-    '/auth/auth-code-error',
-    '/terms',
-    '/privacy',
-  ]
-  const isPublicPath = publicPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path),
-  )
+    const isAccountPendingPage = request.nextUrl.pathname.startsWith('/account-pending')
+    const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
 
-  // Handle public paths
-  if (isPublicPath) {
-    if (user && request.nextUrl.pathname === '/login') {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/menu'
-      return NextResponse.redirect(redirectUrl)
-    }
-    return supabaseResponse
-  }
-
-  // Handle root path - redirect based on auth status
-  if (request.nextUrl.pathname === '/') {
-    const redirectUrl = request.nextUrl.clone()
-    if (user) {
-      redirectUrl.pathname = '/menu'
-    } else {
-      redirectUrl.pathname = '/login'
-    }
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  // Require authentication for all other paths
-  if (!user) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/login'
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  const isAccountPendingPage =
-    request.nextUrl.pathname.startsWith('/account-pending')
-  const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
-
-  // Handle role-based redirects
-  if (userProfile) {
-    const { role } = userProfile
-    if (role === 'pending' && !isAccountPendingPage) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/account-pending'
-      return NextResponse.redirect(redirectUrl)
-    }
-    if (role !== 'pending' && isAccountPendingPage) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/menu'
-      return NextResponse.redirect(redirectUrl)
-    }
-    if (role !== 'admin' && isAdminPath) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/menu'
-      return NextResponse.redirect(redirectUrl)
+    if (profile) {
+      const { role } = profile
+      if (role === 'pending' && !isAccountPendingPage) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/account-pending'
+        return NextResponse.redirect(url)
+      }
+      if (role !== 'pending' && isAccountPendingPage) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/menu'
+        return NextResponse.redirect(url)
+      }
+      if (role !== 'admin' && isAdminPath) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/menu'
+        return NextResponse.redirect(url)
+      }
     }
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
-
+  // IMPORTANT: You *must* return the supabaseResponse object as it is.
   return supabaseResponse
 }
