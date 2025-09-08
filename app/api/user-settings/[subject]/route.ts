@@ -17,8 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ subject: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 사용자 인증 확인
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -77,11 +76,20 @@ export async function GET(
       });
     }
 
+    // 배열 필드들을 숫자로 변환 (문자열로 저장된 경우 대비)
+    const parseArrayToNumbers = (arr: unknown[]): number[] => {
+      if (!Array.isArray(arr)) return [];
+      return arr.map(item => {
+        const num = typeof item === 'string' ? Number.parseInt(item, 10) : Number(item);
+        return Number.isNaN(num) ? null : num;
+      }).filter(item => item !== null) as number[];
+    };
+
     return NextResponse.json({
-      selectedTextbooks: settings.selected_textbooks || [],
-      selectedChapters: settings.selected_chapters || [],
-      selectedSubchapters: settings.selected_subchapters || [],
-      selectedDifficulties: settings.selected_difficulties || ['2', '3'],
+      selectedTextbooks: parseArrayToNumbers(settings.selected_textbooks || []),
+      selectedChapters: parseArrayToNumbers(settings.selected_chapters || []),
+      selectedSubchapters: parseArrayToNumbers(settings.selected_subchapters || []),
+      selectedDifficulties: settings.selected_difficulties || ['1', '2', '3'],
       totalProblems: settings.problem_count || 10,
       isDefault: false
     });
@@ -101,8 +109,7 @@ export async function POST(
   { params }: { params: Promise<{ subject: string }> }
 ) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 사용자 인증 확인
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -156,14 +163,23 @@ export async function POST(
     }
 
     // 설정 저장 (UPSERT: 있으면 업데이트, 없으면 삽입)
+    // 배열 데이터를 숫자 배열로 확실히 변환
+    const safeParseToNumbers = (arr: unknown[]): number[] => {
+      if (!Array.isArray(arr)) return [];
+      return arr.map(item => {
+        const num = typeof item === 'string' ? Number.parseInt(item, 10) : Number(item);
+        return Number.isNaN(num) ? null : num;
+      }).filter(item => item !== null) as number[];
+    };
+
     const { data, error } = await supabase
       .from('user_subject_settings')
       .upsert({
         user_id: user.id,
         subject_id: subjectData.id,
-        selected_textbooks: settingsData.selectedTextbooks,
-        selected_chapters: settingsData.selectedChapters,
-        selected_subchapters: settingsData.selectedSubchapters,
+        selected_textbooks: safeParseToNumbers(settingsData.selectedTextbooks),
+        selected_chapters: safeParseToNumbers(settingsData.selectedChapters),
+        selected_subchapters: safeParseToNumbers(settingsData.selectedSubchapters),
         selected_difficulties: settingsData.selectedDifficulties,
         problem_count: settingsData.totalProblems,
       }, {
@@ -183,9 +199,9 @@ export async function POST(
     return NextResponse.json({
       message: '설정이 성공적으로 저장되었습니다.',
       settings: {
-        selectedTextbooks: data.selected_textbooks,
-        selectedChapters: data.selected_chapters,
-        selectedSubchapters: data.selected_subchapters,
+        selectedTextbooks: safeParseToNumbers(data.selected_textbooks || []),
+        selectedChapters: safeParseToNumbers(data.selected_chapters || []),
+        selectedSubchapters: safeParseToNumbers(data.selected_subchapters || []),
         selectedDifficulties: data.selected_difficulties,
         totalProblems: data.problem_count,
       }

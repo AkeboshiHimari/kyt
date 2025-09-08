@@ -114,7 +114,7 @@ export function UserMenu() {
   if (!user) {
     return (
       <Button 
-        onClick={() => router.push('/')}
+        onClick={() => router.push('/login')}
         variant="default"
         className="rounded-full"
       >
