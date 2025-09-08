@@ -12,32 +12,27 @@ export async function GET(request: Request) {
 	if (code) {
 		const cookieStore = cookies();
 		const supabase = createClient(cookieStore);
-		const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+		const { error } = await supabase.auth.exchangeCodeForSession(code);
 		
-		if (!error && data.session) {
-			// 세션 생성 후 사용자 정보 재확인
-			const { data: { user } } = await supabase.auth.getUser();
+		if (!error) {
+			// 모든 관련 경로의 캐시 무효화 - layout부터 시작해서 모든 것을 새로고침
+			revalidatePath('/', 'layout');
+			revalidatePath('/');
+			revalidatePath('/login');
+			revalidatePath('/menu');
 			
-			if (user) {
-				// 캐시 무효화 - 모든 관련 경로
-				revalidatePath('/', 'layout');
-				revalidatePath('/menu');
-				revalidatePath('/login');
-				
-				// 브라우저 캐싱 방지와 함께 강제 리다이렉트
-				const response = NextResponse.redirect(new URL(next, origin), { 
-					status: 307, // 307 Temporary Redirect - 더 강력한 리다이렉트
-					headers: {
-						'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
-						'Pragma': 'no-cache',
-						'Expires': '0',
-						'Surrogate-Control': 'no-store',
-						'Set-Cookie': `auth-callback=${Date.now()}; Path=/; HttpOnly; SameSite=Lax; Max-Age=1`
-					}
-				});
-				
-				return response;
-			}
+			// 브라우저 히스토리 캐시도 무효화
+			const response = NextResponse.redirect(new URL(next, origin), { 
+				status: 302 // 302 Found - 표준 리다이렉트
+			});
+			
+			// 강력한 캐시 무효화 헤더
+			response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+			response.headers.set('Pragma', 'no-cache');
+			response.headers.set('Expires', '0');
+			response.headers.set('Surrogate-Control', 'no-store');
+			
+			return response;
 		}
 	}
 

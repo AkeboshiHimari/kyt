@@ -26,7 +26,7 @@ export default function Header() {
   return (
     <header className="flex justify-between items-center py-4">
       <Button variant="link" size="lg">
-        <Link href="/">
+        <Link href="/menu">
           <span className="text-2xl">kyt</span>
         </Link>
       </Button>
