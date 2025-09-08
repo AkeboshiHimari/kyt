@@ -37,6 +37,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // 캐시 방지 헤더 추가
+  supabaseResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0')
+  supabaseResponse.headers.set('Pragma', 'no-cache')
+  supabaseResponse.headers.set('Expires', '0')
+
   // Handle authentication redirects
   if (
     !user &&
@@ -48,14 +53,26 @@ export async function updateSession(request: NextRequest) {
     // no user, redirect to login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(url, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
   }
 
   // If user is logged in and trying to access login page, redirect to menu
   if (user && request.nextUrl.pathname.startsWith('/login')) {
     const url = request.nextUrl.clone()
     url.pathname = '/menu'
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(url, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
   }
 
   // Handle root path redirect
@@ -66,7 +83,13 @@ export async function updateSession(request: NextRequest) {
     } else {
       url.pathname = '/login'
     }
-    return NextResponse.redirect(url)
+    return NextResponse.redirect(url, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
   }
 
   // Handle role-based redirects for authenticated users
@@ -85,17 +108,35 @@ export async function updateSession(request: NextRequest) {
       if (role === 'pending' && !isAccountPendingPage) {
         const url = request.nextUrl.clone()
         url.pathname = '/account-pending'
-        return NextResponse.redirect(url)
+        return NextResponse.redirect(url, {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
       }
       if (role !== 'pending' && isAccountPendingPage) {
         const url = request.nextUrl.clone()
         url.pathname = '/menu'
-        return NextResponse.redirect(url)
+        return NextResponse.redirect(url, {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
       }
       if (role !== 'admin' && isAdminPath) {
         const url = request.nextUrl.clone()
         url.pathname = '/menu'
-        return NextResponse.redirect(url)
+        return NextResponse.redirect(url, {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
       }
     }
   }

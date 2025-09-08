@@ -6,6 +6,8 @@ import {
 } from "@/components/ui/accordion";
 import { SubjectCard } from "@/app/menu/subject-card";
 
+export const dynamic = 'force-dynamic'
+
 export default function MenuPage() {
 	// Middleware에서 인증 상태를 확인하고 리다이렉트를 처리합니다
 	return (
