@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { SessionSummaryClient } from './session-summary-client'
 import type { ExtendedProblem } from '@/lib/db-types'
@@ -34,8 +33,7 @@ export default async function SessionSummaryPage({ searchParams }: Props) {
     redirect('/')
   }
 
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   

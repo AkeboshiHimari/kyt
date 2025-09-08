@@ -1,11 +1,9 @@
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import SettingsClient from './settings-client'
 
 export default async function SettingsPage() {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   // 사용자 인증 확인
   const {

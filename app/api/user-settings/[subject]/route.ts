@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import { SUBJECT_NAME_MAPPING } from '@/lib/filter-utils';
 
 interface UserSettingsData {

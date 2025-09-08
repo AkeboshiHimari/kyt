@@ -1,12 +1,10 @@
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { ProfileClient } from './profile-client'
 import { getProfileData, type SubjectBreakdown } from '@/lib/profile-data'
 
 export default async function ProfilePage() {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -18,7 +16,7 @@ export default async function ProfilePage() {
     // 사용자 프로필 정보 가져오기
     const { data: profile } = await supabase
       .from('profiles')
-      .select('nickname, role')
+      .select('*')
       .eq('id', user.id)
       .single()
 

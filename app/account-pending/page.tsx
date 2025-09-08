@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { CheckCircleIcon, ClockIcon } from "lucide-react";
 import {
@@ -11,8 +10,7 @@ import {
 } from "@/components/ui/card";
 
 export default async function AccountPendingPage() {
-	const cookieStore = cookies();
-	const supabase = createClient(cookieStore);
+	const supabase = await createClient();
 
 	const {
 		data: { user },
