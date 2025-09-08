@@ -1,25 +1,18 @@
-import { GoogleLoginButton } from "@/components/auth/google-login-button";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 
-export default function Home() {
-	return (
-		<div className="flex flex-col gap-4 items-center justify-center h-full">
-			<div className="flex flex-col gap-8 text-center items-center justify-vetween">
-				<h1 className="text-6xl">kyt</h1>
-				<GoogleLoginButton className="h-12 text-base rounded-full" />
-			</div>
-			<p className="text-muted-foreground text-xs">
-				계속하면{" "}
-				<Link href="/terms" className="text-muted-foreground underline">
-					약관
-				</Link>{" "}
-				및{" "}
-				<Link href="/privacy" className="text-muted-foreground underline">
-					개인정보처리방침
-				</Link>
-				에 동의하는 것으로 간주됩니다.
-			</p>
-		</div>
-	);
+export default async function Home() {
+  const cookieStore = cookies()
+  const supabase = createClient(cookieStore)
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (user) {
+    // 로그인된 사용자는 메뉴로 리다이렉트
+    redirect('/menu')
+  } else {
+    // 비로그인 사용자는 로그인 페이지로 리다이렉트
+    redirect('/login')
+  }
 }
