@@ -52,6 +52,12 @@ export function UserMenu() {
           setProfileLoaded(false)
         }
         
+        // 로그인 상태가 변경되었을 때 즉시 반영
+        if (event === 'SIGNED_IN' && currentUser) {
+          // 프로필 데이터 미리 로드
+          loadProfile()
+        }
+        
         setIsLoading(false)
       }
     )
