@@ -84,6 +84,7 @@ export function UserMenu() {
         console.error('로그아웃 실패:', error)
         alert('로그아웃 중 오류가 발생했습니다.')
       } else {
+        router.refresh()
         router.push('/')
       }
     } catch (error) {

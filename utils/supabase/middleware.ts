@@ -1,15 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-function createRedirectResponse(url: URL, headers: Headers) {
-  const redirectHeaders = new Headers(headers)
-  redirectHeaders.set('Location', url.href)
-  return new NextResponse(null, {
-    status: 307,
-    headers: redirectHeaders,
-  })
-}
-
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -81,7 +72,7 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Protected pages that require user or admin role
-  const protectedPaths = ['/menu', '/problems', '/profile', '/session-summary', '/settings']
+  const protectedPaths = ['/menu', '/problems', '/profile', '/session-summary']
   const isProtectedPath = protectedPaths.some(path => 
     request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`)
   )
@@ -90,41 +81,37 @@ export async function updateSession(request: NextRequest) {
   if (!user && (isProtectedPath || isAdminPath)) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
-    // Instead of creating a new redirect response, modify the existing one
-    // to preserve Supabase's Set-Cookie headers.
-    supabaseResponse.headers.set('Location', url.href)
-    return new NextResponse(supabaseResponse.body, {
-      headers: supabaseResponse.headers,
-      status: 307, // Use 307 for temporary redirect to preserve request method
-    })
+    const redirectResponse = NextResponse.redirect(url)
+    redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+    return redirectResponse
   }
 
   // If user is not authenticated but trying to access account-pending, redirect to home
   if (!user && isAccountPendingPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
-    supabaseResponse.headers.set('Location', url.href)
-    return new NextResponse(supabaseResponse.body, {
-      headers: supabaseResponse.headers,
-      status: 307,
-    })
+    const redirectResponse = NextResponse.redirect(url)
+    redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+    return redirectResponse
   }
 
   // Role-based access control
   if (user) {
     // Auto-redirect logic for authenticated users on the homepage
     if (request.nextUrl.pathname === '/') {
-      const url = request.nextUrl.clone()
       if (userProfile?.role === 'pending') {
+        const url = request.nextUrl.clone()
         url.pathname = '/account-pending'
+        const redirectResponse = NextResponse.redirect(url)
+        redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+        return redirectResponse
       } else {
+        const url = request.nextUrl.clone()
         url.pathname = '/menu'
+        const redirectResponse = NextResponse.redirect(url)
+        redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+        return redirectResponse
       }
-      supabaseResponse.headers.set('Location', url.href)
-      return new NextResponse(supabaseResponse.body, {
-        headers: supabaseResponse.headers,
-        status: 307,
-      })
     }
 
     if (userProfile) {
@@ -134,11 +121,9 @@ export async function updateSession(request: NextRequest) {
       if (userRole === 'pending' && !isAccountPendingPage) {
         const url = request.nextUrl.clone()
         url.pathname = '/account-pending'
-        supabaseResponse.headers.set('Location', url.href)
-        return new NextResponse(supabaseResponse.body, {
-          headers: supabaseResponse.headers,
-          status: 307,
-        })
+        const redirectResponse = NextResponse.redirect(url)
+        redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+        return redirectResponse
       }
 
       // If pending user is already on account-pending page, allow access
@@ -155,22 +140,18 @@ export async function updateSession(request: NextRequest) {
       if (isAdminPath && userRole !== 'admin') {
         const url = request.nextUrl.clone()
         url.pathname = '/menu'
-        supabaseResponse.headers.set('Location', url.href)
-        return new NextResponse(supabaseResponse.body, {
-          headers: supabaseResponse.headers,
-          status: 307,
-        })
+        const redirectResponse = NextResponse.redirect(url)
+        redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+        return redirectResponse
       }
 
       // Block access to protected pages for pending users
       if (isProtectedPath && userRole === 'pending') {
         const url = request.nextUrl.clone()
         url.pathname = '/account-pending'
-        supabaseResponse.headers.set('Location', url.href)
-        return new NextResponse(supabaseResponse.body, {
-          headers: supabaseResponse.headers,
-          status: 307,
-        })
+        const redirectResponse = NextResponse.redirect(url)
+        redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+        return redirectResponse
       }
     } else {
       // User exists but no profile - this shouldn't happen due to the trigger
@@ -180,11 +161,9 @@ export async function updateSession(request: NextRequest) {
       if (!isPublicPath) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
-        supabaseResponse.headers.set('Location', url.href)
-        return new NextResponse(supabaseResponse.body, {
-          headers: supabaseResponse.headers,
-          status: 307,
-        })
+        const redirectResponse = NextResponse.redirect(url)
+        redirectResponse.cookies.setAll(supabaseResponse.cookies.getAll())
+        return redirectResponse
       }
     }
   } else {
