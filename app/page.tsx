@@ -10,8 +10,8 @@ export default function Home() {
 						문제풀이
 					</Link>
 				</Button>
-				<Button disabled size="lg" variant="link" className="text-5xl">
-					<Link href="/library">
+				<Button size="lg" variant="link" className="text-5xl">
+					<Link href="https://lagrangelab.notion.site">
 						자료실
 					</Link>
 				</Button>
