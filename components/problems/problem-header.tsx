@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Pause, Home, Play, X } from 'lucide-react'
-import  NumberFlow  from '@number-flow/react'
+import NumberFlow, { NumberFlowGroup } from '@number-flow/react'
 
 interface ProblemHeaderProps {
   subjectName: string
@@ -41,23 +41,44 @@ export function ProblemHeader({
             <span className="font-medium flex-shrink-0">
               {subjectName}
             </span>
-            <div className="text-muted-foreground font-mono flex items-center min-w-[60px] justify-center">
-              {hours > 0 && (
-                <>
-                  <NumberFlow value={hours} />
-                  <span>:</span>
-                </>
-              )}
-              <NumberFlow 
-                value={displayMinutes} 
-                format={{ minimumIntegerDigits: hours > 0 ? 2 : 1 }}
-              />
-              <span>:</span>
-              <NumberFlow 
-                value={seconds} 
-                format={{ minimumIntegerDigits: 2 }}
-              />
-            </div>
+            <NumberFlowGroup>
+              <div 
+                className="text-muted-foreground font-mono flex items-center min-w-[60px] justify-center"
+                style={{ fontVariantNumeric: 'tabular-nums', '--number-flow-char-height': '0.85em' } as React.CSSProperties}
+              >
+                {hours > 0 && (
+                  <>
+                    <NumberFlow 
+                      trend={1} 
+                      value={hours} 
+                      format={{ minimumIntegerDigits: 2 }}
+                    />
+                    <NumberFlow 
+                      prefix=":"
+                      trend={1}
+                      value={displayMinutes}
+                      digits={{ 1: { max: 5 } }}
+                      format={{ minimumIntegerDigits: 2 }}
+                    />
+                  </>
+                )}
+                {hours === 0 && (
+                  <NumberFlow 
+                    trend={1}
+                    value={displayMinutes}
+                    digits={{ 1: { max: 5 } }}
+                    format={{ minimumIntegerDigits: 1 }}
+                  />
+                )}
+                <NumberFlow 
+                  prefix=":"
+                  trend={1}
+                  value={seconds}
+                  digits={{ 1: { max: 5 } }}
+                  format={{ minimumIntegerDigits: 2 }}
+                />
+              </div>
+            </NumberFlowGroup>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-2">
