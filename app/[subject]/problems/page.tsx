@@ -220,6 +220,7 @@ export default function ProblemsPage() {
       <ProblemDisplay
         subchapterName={subchapterName}
         problemNumber={currentProblem.problem_number}
+        pageNumber={currentProblem.page_number}
         textbookName={textbookName}
         isPaused={isPaused}
       />

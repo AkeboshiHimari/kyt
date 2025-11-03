@@ -4,6 +4,7 @@ import { TextAnimate } from "@/components/imported/magicui/text-animate";
 interface ProblemDisplayProps {
 	subchapterName?: string; // 수학 과목의 경우 없을 수 있음
 	problemNumber: string;
+	pageNumber?: number;
 	textbookName?: string;
 	isPaused: boolean;
 }
@@ -11,6 +12,7 @@ interface ProblemDisplayProps {
 export function ProblemDisplay({
 	subchapterName,
 	problemNumber,
+	pageNumber,
 	textbookName,
 	isPaused,
 }: ProblemDisplayProps) {
@@ -24,9 +26,9 @@ export function ProblemDisplay({
 						</TextAnimate>
 					)}
 					<div className="flex items-center justify-center gap-2">
-						{subchapterName && (
+						{(pageNumber != null || subchapterName) && (
 							<TextAnimate animation="blurIn" as="h1" by="line" className="text-4xl text-muted-foreground">
-								{subchapterName}
+								{pageNumber?.toString() ?? subchapterName ?? ''}
 							</TextAnimate>
 						)}
 						<TextAnimate animation="blurIn" as="h1" by="line" className="text-4xl">
